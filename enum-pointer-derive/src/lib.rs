@@ -42,6 +42,10 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
             tag_mask = min_align - 1;
 
             for variant in variants {
+                if let Some((_, expr)) = variant.discriminant {
+                    return error(expr, "EnumPointer doesn't support discriminant values");
+                }
+
                 match variant.fields {
                     Fields::Named(FieldsNamed { named: fields, .. })
                     | Fields::Unnamed(FieldsUnnamed {
@@ -50,6 +54,7 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
                         if fields.len() != 1 {
                             return error(fields, "EnumPointer doesn't support multiple fields");
                         }
+
                         let variant_ident = variant.ident;
                         let field = fields.first().unwrap();
                         asserts.push(quote!(
