@@ -3,7 +3,8 @@ use std::fmt::Display;
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    parse_macro_input, spanned::Spanned, Data, DataEnum, DeriveInput, Fields, FieldsUnnamed,
+    parse_macro_input, parse_quote, spanned::Spanned, Data, DataEnum, DeriveInput, Fields,
+    FieldsUnnamed,
 };
 
 fn error(span: impl Spanned, message: impl Display) -> TokenStream {
@@ -31,7 +32,10 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
 
     match input.data {
         Data::Enum(DataEnum { variants, .. }) => {
-            // TODO: check #[repr(C, usize)]
+            // Put after enum check to make testing easier
+            if !input.attrs.contains(&parse_quote!(#[repr(C, usize)])) {
+                return error(ident, "EnumPointer requires `#[repr(C, usize)]`");
+            }
 
             let min_align = variants.len().next_power_of_two();
             tag_mask = min_align - 1;
@@ -58,7 +62,6 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        // TODO: better error span
         _ => return error(ident, "EnumPointer only supports enums"),
     }
 
