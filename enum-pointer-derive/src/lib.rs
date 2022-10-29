@@ -17,6 +17,7 @@ fn error(span: impl Spanned, message: impl Display) -> TokenStream {
 pub fn enum_pointer(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
+    let vis = input.vis;
     let ident = input.ident;
     let derived_ident = format_ident!("Compact{}", ident);
     let generics = input.generics;
@@ -66,7 +67,7 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
     }
 
     quote! {
-        struct #derived_ident #generics {
+        #vis struct #derived_ident #generics {
             data: usize,
             phantom: ::core::marker::PhantomData<#ident #generics>,
         }
