@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
     parse_macro_input, parse_quote, spanned::Spanned, Data, DataEnum, DeriveInput, Fields,
-    FieldsUnnamed,
+    FieldsNamed, FieldsUnnamed,
 };
 
 fn error(span: impl Spanned, message: impl Display) -> TokenStream {
@@ -43,15 +43,15 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
 
             for variant in variants {
                 match variant.fields {
-                    named @ Fields::Named(_) => {
-                        return error(named, "EnumPointer doesn't support named fields");
-                    }
-                    Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
-                        if unnamed.len() != 1 {
-                            return error(unnamed, "EnumPointer doesn't support multiple fields");
+                    Fields::Named(FieldsNamed { named: fields, .. })
+                    | Fields::Unnamed(FieldsUnnamed {
+                        unnamed: fields, ..
+                    }) => {
+                        if fields.len() != 1 {
+                            return error(fields, "EnumPointer doesn't support multiple fields");
                         }
                         let variant_ident = variant.ident;
-                        let field = unnamed.first().unwrap();
+                        let field = fields.first().unwrap();
                         asserts.push(quote!(
                             assert!(
                                 <#field as ::enum_pointer::Compactable>::ALIGN >= #min_align,
