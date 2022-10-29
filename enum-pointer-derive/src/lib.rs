@@ -24,33 +24,33 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
         Data::Enum(DataEnum { variants, .. }) => {
             // TODO: check #[repr(C, usize)]
 
-            let mut asserts = quote! {
+            let mut asserts = vec![quote! {
                 assert!(
                     ::core::mem::size_of::<#ident>() == 2 * ::core::mem::size_of::<usize>(),
                     concat!("`", stringify!(#ident), "` should be 2 pointers wide")
                 );
-            };
+            }];
 
             let num_variants = variants.len();
             for variant in variants {
                 match variant.fields {
+                    named @ Fields::Named(_) => {
+                        return error(named, "EnumPointer doesn't support named fields");
+                    }
                     Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
                         if unnamed.len() != 1 {
                             return error(unnamed, "EnumPointer doesn't support multiple fields");
                         }
                         let variant_ident = variant.ident;
                         let field = unnamed.first().unwrap();
-                        asserts.extend(quote!(
+                        asserts.push(quote!(
                             assert!(
                                 <#field as ::enum_pointer::Compactable>::ALIGN >= #num_variants,
                                 concat!("`", stringify!(#ident), "::", stringify!(#variant_ident), "` has no enough alignment")
                             );
                         ));
                     }
-                    named @ Fields::Named(_) => {
-                        return error(named, "EnumPointer doesn't support named fields");
-                    }
-                    _ => {}
+                    Fields::Unit => {}
                 }
             }
 
@@ -68,7 +68,7 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
 
         impl #generics #derived_ident #generics {
             const _CHECK: () = {
-                #asserts
+                #(#asserts)*
             };
         }
 
