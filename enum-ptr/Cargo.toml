@@ -1,5 +1,5 @@
 [package]
-name = "enum-pointer"
+name = "enum-ptr"
 version = "0.1.0"
 authors = ["QuarticCat <QuarticCat@protonmail.com>"]
 license = "MIT OR Apache-2.0"
@@ -10,4 +10,4 @@ default = ["std"]
 std = []
 
 [dependencies]
-enum-pointer-derive = { version = "*", path = "../enum-pointer-derive" }
+enum-ptr-derive = { version = "*", path = "../enum-ptr-derive" }

@@ -13,8 +13,8 @@ fn error(span: impl Spanned, message: impl Display) -> TokenStream {
         .into()
 }
 
-#[proc_macro_derive(EnumPointer)]
-pub fn enum_pointer(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(EnumPtr)]
+pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     let vis = input.vis;
@@ -35,7 +35,7 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
         Data::Enum(DataEnum { variants, .. }) => {
             // Put after enum check to make testing easier
             if !input.attrs.contains(&parse_quote!(#[repr(C, usize)])) {
-                return error(ident, "EnumPointer requires `#[repr(C, usize)]`");
+                return error(ident, "EnumPtr requires `#[repr(C, usize)]`");
             }
 
             let min_align = variants.len().next_power_of_two();
@@ -43,7 +43,7 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
 
             for variant in variants {
                 if let Some((_, expr)) = variant.discriminant {
-                    return error(expr, "EnumPointer doesn't support discriminant values");
+                    return error(expr, "EnumPtr doesn't support discriminant values");
                 }
 
                 match variant.fields {
@@ -52,14 +52,14 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
                         unnamed: fields, ..
                     }) => {
                         if fields.len() != 1 {
-                            return error(fields, "EnumPointer doesn't support multiple fields");
+                            return error(fields, "EnumPtr doesn't support multiple fields");
                         }
 
                         let variant_ident = variant.ident;
                         let field = fields.first().unwrap();
                         asserts.push(quote!(
                             assert!(
-                                <#field as ::enum_pointer::Compactable>::ALIGN >= #min_align,
+                                <#field as ::enum_ptr::Compactable>::ALIGN >= #min_align,
                                 concat!("`", stringify!(#ident), "::", stringify!(#variant_ident), "` has no enough alignment")
                             );
                         ));
@@ -68,7 +68,7 @@ pub fn enum_pointer(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        _ => return error(ident, "EnumPointer only supports enums"),
+        _ => return error(ident, "EnumPtr only supports enums"),
     }
 
     quote! {

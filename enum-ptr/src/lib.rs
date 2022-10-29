@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub use enum_pointer_derive::EnumPointer;
+pub use enum_ptr_derive::EnumPtr;
 
 /// # Safety
 ///

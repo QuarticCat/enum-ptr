@@ -1,13 +1,10 @@
 [package]
-name = "enum-pointer-derive"
+name = "enum-ptr-tests"
 version = "0.1.0"
 authors = ["QuarticCat <QuarticCat@protonmail.com>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-
-[lib]
-proc-macro = true
+publish = false
 
 [dependencies]
-syn = { version = "1", features = ["extra-traits"]}
-quote = "1"
+enum-ptr = { path = "../enum-ptr" }
