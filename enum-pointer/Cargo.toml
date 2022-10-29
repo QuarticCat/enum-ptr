@@ -1,0 +1,9 @@
+[package]
+name = "enum-pointer"
+version = "0.1.0"
+authors = ["QuarticCat <QuarticCat@protonmail.com>"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+
+[dependencies]
+enum-pointer-derive = { version = "*", path = "../enum-pointer-derive" }
