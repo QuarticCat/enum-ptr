@@ -1,3 +1,3 @@
-mod ptr_info;
+mod compactable;
 
-pub use ptr_info::*;
+pub use compactable::*;
