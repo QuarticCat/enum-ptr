@@ -67,7 +67,9 @@ Suppose we are deriving from `Foo`, then
 - Each variant of `Foo` must have enough alignment to store the tag.
 - Each variant of `Foo` must have at most one field (multiple fields are not supported for now).
 
-Any violation of these rules will trigger a compilation error. Otherwise, please file an issue.
+Any violation of these rules will trigger a compilation error except alignment checks. Otherwise, please file an issue.
+
+If some variant has no enough alignment, it will trigger a run-time panic. Or assertions will be optimized away. There is no extra run-time cost.
 
 ## Justifications of `#[repr(C, usize)]`
 

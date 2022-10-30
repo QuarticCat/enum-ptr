@@ -1,3 +1,13 @@
+error[E0512]: cannot transmute between types of different sizes, or dependently-sized types
+ --> tests/fail/size_unmatch.rs:5:10
+  |
+5 | #[derive(EnumPtr)]
+  |          ^^^^^^^
+  |
+  = note: source type: `EnumRepr` (128 bits)
+  = note: target type: `Foo` (192 bits)
+  = note: this error originates in the derive macro `EnumPtr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
 error[E0277]: the size for values of type `str` cannot be known at compilation time
  --> tests/fail/size_unmatch.rs:5:10
   |
@@ -15,14 +25,4 @@ error[E0277]: the size for values of type `str` cannot be known at compilation t
             Option<&'a mut T>
             Option<Box<T>>
   = note: required because of the requirements on the impl of `Compactable` for `&'b str`
-  = note: this error originates in the derive macro `EnumPtr` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0512]: cannot transmute between types of different sizes, or dependently-sized types
- --> tests/fail/size_unmatch.rs:5:10
-  |
-5 | #[derive(EnumPtr)]
-  |          ^^^^^^^
-  |
-  = note: source type: `EnumRepr` (128 bits)
-  = note: target type: `Foo` (192 bits)
   = note: this error originates in the derive macro `EnumPtr` (in Nightly builds, run with -Z macro-backtrace for more info)

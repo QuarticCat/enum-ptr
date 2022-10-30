@@ -52,7 +52,9 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
                         let field = fields.first().unwrap();
                         asserts.push(quote!(
                             assert!(
-                                <#field as ::enum_ptr::Compactable>::ALIGN >= #min_align,
+                                ::core::mem::align_of::<
+                                    <#field as ::enum_ptr::Compactable>::Pointee
+                                >() >= #min_align,
                                 concat!("`", stringify!(#ident), "::", stringify!(#variant_ident), "` has no enough alignment")
                             );
                         ));
@@ -70,12 +72,6 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
             phantom: ::core::marker::PhantomData<#ident #generics>,
         }
 
-        impl #generics #derived_ident #generics {
-            const fn _check() {
-                #(#asserts)*
-            }
-        }
-
         impl #generics From<#derived_ident #generics> for #ident #generics {
             fn from(other: #derived_ident #generics) -> Self {
                 let tag_ptr = ::enum_ptr::EnumRepr(
@@ -88,7 +84,8 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
         impl #generics From<#ident #generics> for #derived_ident #generics {
             fn from(other: #ident #generics) -> Self {
-                let _ = [(); { Self::_check(); 0 }]; // trigger static asserts
+                #(#asserts)*
+                
                 let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
                 Self {
                     data: tag | ptr,

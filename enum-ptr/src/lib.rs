@@ -5,7 +5,6 @@ pub use enum_ptr_derive::EnumPtr;
 /// # Safety
 ///
 /// - `T` is aligned by `align_of::<Pointee>()` (low bits are always zeros)
-/// - `size_of::<T>() == size_of::<usize>()`
 pub unsafe trait Compactable: Sized {
     type Pointee;
     const ALIGN: usize = core::mem::align_of::<Self::Pointee>();
