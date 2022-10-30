@@ -10,4 +10,4 @@ default = ["std"]
 std = []
 
 [dependencies]
-enum-ptr-derive = { version = "*", path = "../enum-ptr-derive" }
+enum-ptr-derive = { version = "0.1", path = "../enum-ptr-derive" }
