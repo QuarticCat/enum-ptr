@@ -43,7 +43,3 @@ unsafe impl<'a, T> Compactable for Option<&'a mut T> {
 unsafe impl<T> Compactable for Option<Box<T>> {
     type Pointee = T;
 }
-
-#[doc(hidden)]
-#[repr(C)]
-pub struct EnumRepr(pub usize, pub usize);

@@ -2,10 +2,7 @@ use std::fmt::Display;
 
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{
-    parse_macro_input, parse_quote, spanned::Spanned, Data, DataEnum, DeriveInput, Fields,
-    FieldsNamed, FieldsUnnamed,
-};
+use syn::{parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput, Variant};
 
 fn error(span: impl Spanned, message: impl Display) -> TokenStream {
     syn::Error::new(span.span(), message)
@@ -15,79 +12,72 @@ fn error(span: impl Spanned, message: impl Display) -> TokenStream {
 
 #[proc_macro_derive(EnumPtr)]
 pub fn enum_ptr(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let DeriveInput {
+        attrs,
+        vis,
+        ident: enum_ident,
+        generics,
+        data,
+    } = parse_macro_input!(input);
 
-    let vis = input.vis;
-    let ident = input.ident;
-    let derived_ident = format_ident!("Compact{}", ident);
-    let generics = input.generics;
-
-    if !input.attrs.contains(&parse_quote!(#[repr(C, usize)])) {
-        return error(ident, "EnumPtr requires `#[repr(C, usize)]`");
+    if !attrs.contains(&parse_quote!(#[repr(C, usize)])) {
+        return error(enum_ident, "EnumPtr requires `#[repr(C, usize)]`");
     }
+
+    let variants = match data {
+        Data::Enum(data_enum) => data_enum.variants,
+        _ => unreachable!(), // `#[repr(C, usize)]` implies enum
+    };
+    let min_align = variants.len().next_power_of_two();
+    let tag_mask = min_align - 1;
 
     let mut asserts = Vec::new();
-    let tag_mask;
-
-    match input.data {
-        Data::Enum(DataEnum { variants, .. }) => {
-            let min_align = variants.len().next_power_of_two();
-            tag_mask = min_align - 1;
-
-            for variant in variants {
-                match variant.fields {
-                    Fields::Named(FieldsNamed { named: fields, .. })
-                    | Fields::Unnamed(FieldsUnnamed {
-                        unnamed: fields, ..
-                    }) => {
-                        if fields.is_empty() {
-                            continue;
-                        }
-                        if fields.len() > 1 {
-                            return error(fields, "EnumPtr doesn't support multiple fields");
-                        }
-
-                        let variant_ident = variant.ident;
-                        let field_type = &fields.first().unwrap().ty;
-                        let assert_msg =
-                            format!("`{}::{}` has no enough alignment", ident, variant_ident);
-                        asserts.push(quote! {
-                            assert!(
-                                ::core::mem::align_of::<
-                                    <#field_type as ::enum_ptr::Compactable>::Pointee
-                                >() >= #min_align,
-                                #assert_msg
-                            );
-                        });
-                    }
-                    Fields::Unit => {}
-                }
-            }
+    for Variant {
+        ident: variant_ident,
+        fields,
+        ..
+    } in variants
+    {
+        if fields.is_empty() {
+            continue;
         }
-        _ => unreachable!(), // `#[repr(C, usize)]` implies enum
+        if fields.len() > 1 {
+            return error(fields, "EnumPtr doesn't support multiple fields");
+        }
+
+        let field_type = &fields.into_iter().next().unwrap().ty;
+        let assert_msg = format!("`{enum_ident}::{variant_ident}` has no enough alignment");
+        asserts.push(quote! {
+            assert!(
+                ::core::mem::align_of::<
+                    <#field_type as ::enum_ptr::Compactable>::Pointee
+                >() >= #min_align,
+                #assert_msg
+            );
+        });
     }
 
+    let new_enum_ident = format_ident!("Compact{enum_ident}");
+
+    // Generated code of different approaches and different enums:
+    // https://rust.godbolt.org/z/z5Wb59c4j
     quote! {
-        #vis struct #derived_ident #generics {
+        #vis struct #new_enum_ident #generics {
             data: usize,
-            phantom: ::core::marker::PhantomData<#ident #generics>,
+            phantom: ::core::marker::PhantomData<#enum_ident #generics>,
         }
 
-        impl #generics From<#derived_ident #generics> for #ident #generics {
-            fn from(other: #derived_ident #generics) -> Self {
-                let tag_ptr = ::enum_ptr::EnumRepr(
-                    other.data & #tag_mask,
-                    other.data & !#tag_mask,
-                );
+        impl #generics From<#new_enum_ident #generics> for #enum_ident #generics {
+            fn from(other: #new_enum_ident #generics) -> Self {
+                let tag_ptr = [other.data & #tag_mask, other.data & !#tag_mask];
                 unsafe { ::core::mem::transmute(tag_ptr) }
             }
         }
 
-        impl #generics From<#ident #generics> for #derived_ident #generics {
-            fn from(other: #ident #generics) -> Self {
+        impl #generics From<#enum_ident #generics> for #new_enum_ident #generics {
+            fn from(other: #enum_ident #generics) -> Self {
                 #(#asserts)*
-
-                let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
+                let [tag, ptr]: [usize; 2] = unsafe { ::core::mem::transmute(other) };
                 Self {
                     data: tag | ptr,
                     phantom: ::core::marker::PhantomData,
