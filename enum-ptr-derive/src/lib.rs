@@ -51,7 +51,10 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
                     | Fields::Unnamed(FieldsUnnamed {
                         unnamed: fields, ..
                     }) => {
-                        if fields.len() != 1 {
+                        if fields.is_empty() {
+                            continue;
+                        }
+                        if fields.len() > 1 {
                             return error(fields, "EnumPtr doesn't support multiple fields");
                         }
 
