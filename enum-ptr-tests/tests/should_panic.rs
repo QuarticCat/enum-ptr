@@ -3,7 +3,7 @@
 use enum_ptr::EnumPtr;
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "`Foo::B` has no enough alignment")]
 fn no_enough_alignment() {
     #[derive(EnumPtr)]
     #[repr(C, usize)]

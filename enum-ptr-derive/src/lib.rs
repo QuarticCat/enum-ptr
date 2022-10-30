@@ -50,14 +50,16 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
                         let variant_ident = variant.ident;
                         let field_type = &fields.first().unwrap().ty;
-                        asserts.push(quote!(
+                        let assert_msg =
+                            format!("`{}::{}` has no enough alignment", ident, variant_ident);
+                        asserts.push(quote! {
                             assert!(
                                 ::core::mem::align_of::<
                                     <#field_type as ::enum_ptr::Compactable>::Pointee
                                 >() >= #min_align,
-                                concat!("`", stringify!(#ident), "::", stringify!(#variant_ident), "` has no enough alignment")
+                                #assert_msg
                             );
-                        ));
+                        });
                     }
                     Fields::Unit => {}
                 }
