@@ -1,0 +1,5 @@
+error: EnumPtr doesn't support multiple fields
+ --> $DIR/multiple_fields.rs:9:7
+  |
+9 |     B(&'b i32, *const i32),
+  |       ^
