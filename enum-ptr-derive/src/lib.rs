@@ -77,7 +77,9 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         }
 
         impl #generics #derived_ident #generics {
-            const _CHECK: () = { #(#asserts)* };
+            const fn _check() {
+                #(#asserts)*
+            }
         }
 
         impl #generics From<#derived_ident #generics> for #ident #generics {
@@ -92,7 +94,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
         impl #generics From<#ident #generics> for #derived_ident #generics {
             fn from(other: #ident #generics) -> Self {
-                let _ = Self::_CHECK; // trigger static asserts
+                let _ = [(); { Self::_check(); 0 }]; // trigger static asserts
                 let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
                 Self {
                     data: tag | ptr,

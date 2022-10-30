@@ -5,9 +5,9 @@ use enum_ptr::EnumPtr;
 #[derive(EnumPtr)]
 #[repr(C, usize)]
 enum Foo<'a, 'b> {
-    A(&'a i32),
-    B(&'b mut i32),
-    C(Option<Box<i32>>),
+    A(&'a i64),
+    B(&'b mut i64),
+    C(Option<Box<i64>>),
     D(),
     E {},
     F,
