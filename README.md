@@ -1,4 +1,4 @@
-# Enum Ptr (WIP)
+# Enum Ptr
 
 This crate provides a custom derive macro `EnumPtr` to automatically generate compact representations of `enum`s of pointers / references and conversions between them with minimum cost. For example, the following code
 
@@ -21,8 +21,6 @@ struct CompactFoo<'a> {
     data: usize,
     phantom: PhantomData<Foo<'a>>,
 }
-
-// some compile-time checks to ensure safety
 
 impl<'a> From<CompactFoo<'a>> for Foo<'a> {
     // ...
@@ -53,14 +51,44 @@ enum-ptr = { version = "*", default-features = false }
 
 ### Code
 
-TODO
+Define a `enum` with different pointers or units and add `#[derive(EnumPtr)]` and `#[repr(C, usize)]` on top of it.
+
+```rust
+use enum_ptr::EnumPtr;
+
+#[derive(EnumPtr)]
+#[repr(C, usize)]
+enum Foo<'a, T> {
+    A(&'a i64),
+    B { ptr: *mut T },
+    C(Option<Box<i64>>),
+    D(),
+    E {},
+    F,
+}
+```
+
+Then you can convert between the original `enum` and the compact representation by
+
+```rust
+let foo = /* ... */;
+let compact_foo = CompactFoo::from(foo);
+let original_foo = Foo::from(compact_foo);
+```
+
+The `enum` can have generic parameters. Its variants can be named (`X { ... }`), unnamed (`X(...)`), or units (`X`). Each variant can have at most one field.
+
+As long as a type implements the `Compactable` trait, it can be used as the field type. You can also implement this trait for your own pointer types.
 
 ## Limitations
 
 Suppose we are deriving from `Foo`, then
 
 - `Foo` must be a `enum`.
-- `Foo` must have a `#[repr(C, usize)]` (see [justifications](#justifications-of-reprc-usize)).
+- `Foo` must have a `#[repr(C, usize)]`.
+  - According to [Unsafe Code Guidelines Reference](https://rust-lang.github.io/unsafe-code-guidelines/layout/enums.html#explicit-repr-annotation-with-c-compatibility) and [The Rust Reference](https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations), `#[repr(C, usize)]` guarantees the memory layout and discriminant values. Thus, we can safely transmute between two representations, which has the minimum cost.
+  - `#[repr(C, usize)]` won't consume extra memory as I stated below.
+  - The type of discriminant values is specified as `usize` to avoid type conversion costs.
 - `Foo` must be 2 pointers wide.
   - If `Foo` is smaller, it is already in the compact representation.
   - If `Foo` is larger, this crate cannot compress it into a `usize`.
@@ -70,10 +98,6 @@ Suppose we are deriving from `Foo`, then
 Any violation of these rules will trigger a compilation error except alignment checks. Otherwise, please file an issue.
 
 If some variant has no enough alignment, it will trigger a run-time panic. Or assertions will be optimized away. There is no extra run-time cost.
-
-## Justifications of `#[repr(C, usize)]`
-
-TODO
 
 ## TODO
 
