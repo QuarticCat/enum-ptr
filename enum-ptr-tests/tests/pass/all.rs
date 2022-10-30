@@ -4,13 +4,15 @@ use enum_ptr::EnumPtr;
 
 #[derive(EnumPtr)]
 #[repr(C, usize)]
-enum Foo<'a, 'b> {
+enum Foo<'a, T> {
     A(&'a i64),
-    B(&'b mut i64),
+    B { ptr: *mut T },
     C(Option<Box<i64>>),
     D(),
     E {},
     F,
 }
 
-fn main() {}
+fn main() {
+    let _ = CompactFoo::from(Foo::<u64>::A(&0));
+}

@@ -49,11 +49,11 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
                         }
 
                         let variant_ident = variant.ident;
-                        let field = fields.first().unwrap();
+                        let field_type = &fields.first().unwrap().ty;
                         asserts.push(quote!(
                             assert!(
                                 ::core::mem::align_of::<
-                                    <#field as ::enum_ptr::Compactable>::Pointee
+                                    <#field_type as ::enum_ptr::Compactable>::Pointee
                                 >() >= #min_align,
                                 concat!("`", stringify!(#ident), "::", stringify!(#variant_ident), "` has no enough alignment")
                             );
@@ -85,7 +85,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         impl #generics From<#ident #generics> for #derived_ident #generics {
             fn from(other: #ident #generics) -> Self {
                 #(#asserts)*
-                
+
                 let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
                 Self {
                     data: tag | ptr,
