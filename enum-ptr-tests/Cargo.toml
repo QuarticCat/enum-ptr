@@ -8,3 +8,6 @@ publish = false
 
 [dependencies]
 enum-ptr = { path = "../enum-ptr" }
+
+[dev-dependencies]
+trybuild = "1.0"

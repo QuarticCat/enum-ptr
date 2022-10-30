@@ -1,0 +1,5 @@
+error: EnumPtr only supports enums
+ --> $DIR/union.rs:6:7
+  |
+6 | union Foo<'a, 'b> {
+  |       ^^^
