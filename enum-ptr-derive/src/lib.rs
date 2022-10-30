@@ -22,13 +22,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let derived_ident = format_ident!("Compact{}", ident);
     let generics = input.generics;
 
-    let mut asserts = vec![quote! {
-        assert!(
-            ::core::mem::size_of::<#ident>() == 2 * ::core::mem::size_of::<usize>(),
-            concat!("`", stringify!(#ident), "` should be 2 pointers wide")
-        );
-    }];
-
+    let mut asserts = Vec::new();
     let tag_mask;
 
     match input.data {

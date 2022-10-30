@@ -1,5 +1,5 @@
 error: EnumPtr only supports enums
- --> $DIR/struct.rs:6:8
+ --> tests/fail/struct.rs:6:8
   |
 6 | struct Foo<'a, 'b> {
   |        ^^^
