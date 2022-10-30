@@ -22,16 +22,15 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let derived_ident = format_ident!("Compact{}", ident);
     let generics = input.generics;
 
+    if !input.attrs.contains(&parse_quote!(#[repr(C, usize)])) {
+        return error(ident, "EnumPtr requires `#[repr(C, usize)]`");
+    }
+
     let mut asserts = Vec::new();
     let tag_mask;
 
     match input.data {
         Data::Enum(DataEnum { variants, .. }) => {
-            // Put after enum check to make testing easier
-            if !input.attrs.contains(&parse_quote!(#[repr(C, usize)])) {
-                return error(ident, "EnumPtr requires `#[repr(C, usize)]`");
-            }
-
             let min_align = variants.len().next_power_of_two();
             tag_mask = min_align - 1;
 
@@ -65,7 +64,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        _ => return error(ident, "EnumPtr only supports enums"),
+        _ => unreachable!(), // `#[repr(C, usize)]` implies enum
     }
 
     quote! {

@@ -84,14 +84,13 @@ As long as a type implements the `Compactable` trait, it can be used as the fiel
 
 Suppose we are deriving from `Foo`, then
 
-- `Foo` must be a `enum`.
-- `Foo` must have a `#[repr(C, usize)]`.
-  - According to [Unsafe Code Guidelines Reference](https://rust-lang.github.io/unsafe-code-guidelines/layout/enums.html#explicit-repr-annotation-with-c-compatibility) and [The Rust Reference](https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations), `#[repr(C, usize)]` guarantees the memory layout and discriminant values. Thus, we can safely transmute between two representations, which has the minimum cost.
-  - `#[repr(C, usize)]` won't consume extra memory as I stated below.
-  - The type of discriminant values is specified as `usize` to avoid type conversion costs.
 - `Foo` must be 2 pointers wide.
   - If `Foo` is smaller, it is already in the compact representation.
   - If `Foo` is larger, this crate cannot compress it into a `usize`.
+- `Foo` must have a `#[repr(C, usize)]`.
+  - According to [Unsafe Code Guidelines Reference](https://rust-lang.github.io/unsafe-code-guidelines/layout/enums.html#explicit-repr-annotation-with-c-compatibility) and [The Rust Reference](https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations), `#[repr(C, usize)]` guarantees the memory layout and discriminant values. Thus, we can safely transmute between two representations.
+  - `#[repr(C, usize)]` won't consume extra memory as stated before.
+  - The type of discriminant values is specified as `usize` to avoid type conversion costs.
 - Each variant of `Foo` must have enough alignment to store the tag.
 - Each variant of `Foo` must have at most one field (multiple fields are not supported for now).
 

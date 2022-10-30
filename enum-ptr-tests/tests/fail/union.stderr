@@ -1,5 +1,0 @@
-error: EnumPtr only supports enums
- --> tests/fail/union.rs:6:7
-  |
-6 | union Foo<'a, 'b> {
-  |       ^^^
