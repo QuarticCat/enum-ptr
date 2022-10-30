@@ -86,15 +86,18 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
         impl #generics From<#derived_ident #generics> for #ident #generics {
             fn from(other: #derived_ident #generics) -> Self {
-                let tag_ptr = (other.data & #tag_mask, other.data & !#tag_mask);
-                unsafe { ::core::mem::transmute::<_, Self>(tag_ptr) }
+                let tag_ptr = ::enum_ptr::EnumRepr(
+                    other.data & #tag_mask,
+                    other.data & !#tag_mask,
+                );
+                unsafe { ::core::mem::transmute(tag_ptr) }
             }
         }
 
         impl #generics From<#ident #generics> for #derived_ident #generics {
             fn from(other: #ident #generics) -> Self {
                 let _ = Self::_CHECK; // trigger static asserts
-                let (tag, ptr) = unsafe { ::core::mem::transmute::<_, (usize, usize)>(other) };
+                let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
                 Self {
                     data: tag | ptr,
                     phantom: ::core::marker::PhantomData,
