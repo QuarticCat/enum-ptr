@@ -42,10 +42,6 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
             tag_mask = min_align - 1;
 
             for variant in variants {
-                if let Some((_, expr)) = variant.discriminant {
-                    return error(expr, "EnumPtr doesn't support discriminant values");
-                }
-
                 match variant.fields {
                     Fields::Named(FieldsNamed { named: fields, .. })
                     | Fields::Unnamed(FieldsUnnamed {
