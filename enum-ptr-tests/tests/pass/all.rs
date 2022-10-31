@@ -4,9 +4,9 @@ use enum_ptr::EnumPtr;
 
 #[derive(EnumPtr)]
 #[repr(C, usize)]
-enum Foo<'a, T> {
+enum Foo<'a, 'b, T> {
     A(&'a i64),
-    B { ptr: *mut T },
+    B { ptr: &'b mut T },
     C(Option<Box<i64>>),
     D(),
     E {},

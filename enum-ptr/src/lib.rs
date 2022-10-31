@@ -10,14 +10,6 @@ pub unsafe trait Compactable: Sized {
     const ALIGN: usize = core::mem::align_of::<Self::Pointee>();
 }
 
-unsafe impl<T> Compactable for *const T {
-    type Pointee = T;
-}
-
-unsafe impl<T> Compactable for *mut T {
-    type Pointee = T;
-}
-
 unsafe impl<'a, T> Compactable for &'a T {
     type Pointee = T;
 }

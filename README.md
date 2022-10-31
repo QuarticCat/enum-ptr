@@ -1,6 +1,6 @@
 # Enum Ptr
 
-This crate provides a custom derive macro `EnumPtr` to automatically generate compact representations of `enum`s of pointers / references and conversions between them with minimum cost. For example, the following code
+This crate provides a custom derive macro `EnumPtr` to automatically generate compact representations of `enum`s of pointers and conversions between them with minimum cost. For example, the following code
 
 ```rust
 use enum_ptr::EnumPtr;
@@ -58,9 +58,9 @@ use enum_ptr::EnumPtr;
 
 #[derive(EnumPtr)]
 #[repr(C, usize)]
-enum Foo<'a, T> {
+enum Foo<'a, 'b, T> {
     A(&'a i64),
-    B { ptr: *mut T },
+    B { ptr: &'b mut T },
     C(Option<Box<i64>>),
     D(),
     E {},
