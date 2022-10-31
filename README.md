@@ -18,7 +18,7 @@ will generate
 
 ```rust
 struct CompactFoo<'a> {
-    data: usize,
+    data: enum_ptr::Private<usize>,
     phantom: PhantomData<Foo<'a>>,
 }
 

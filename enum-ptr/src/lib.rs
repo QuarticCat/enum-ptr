@@ -43,3 +43,8 @@ unsafe impl<'a, T> Compactable for Option<&'a mut T> {
 unsafe impl<T> Compactable for Option<Box<T>> {
     type Pointee = T;
 }
+
+/// A private transparent wrapper of `T`. It avoids any manipulations on `T`
+/// in safe Rust. You have to transmute it to `T` before using it.
+#[repr(transparent)]
+pub struct Private<T>(T);
