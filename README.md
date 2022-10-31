@@ -101,6 +101,10 @@ If some variant has no enough alignment, it will trigger a run-time panic. Or as
 - Rename option
 - Derive option
 
+## Credits
+
+- Thanks to [@oxalica](https://github.com/oxalica) for reviewing this crate.
+
 ## License
 
 This project is licensed under either of
