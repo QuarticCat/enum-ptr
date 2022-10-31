@@ -89,9 +89,8 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
         impl #generics Drop for #new_enum_ident #generics {
             fn drop(&mut self) {
-                let data: usize = unsafe { ::core::mem::transmute_copy(self) };
-                let tag_ptr = [data & #tag_mask, data & !#tag_mask];
-                let _: #enum_ident #generics = unsafe { ::core::mem::transmute(tag_ptr) };
+                let this: Self = unsafe { ::core::mem::transmute_copy(self) };
+                let _ = #enum_ident::from(this);
             }
         }
 
