@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
+use quote::quote;
 use syn::{parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput};
 
 fn error(span: impl Spanned, message: impl Display) -> TokenStream {
@@ -14,17 +14,16 @@ fn error(span: impl Spanned, message: impl Display) -> TokenStream {
 pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let DeriveInput {
         attrs,
-        vis,
         ident: enum_ident,
         generics,
         data,
+        ..
     } = parse_macro_input!(input);
 
     if !attrs.contains(&parse_quote!(#[repr(C, usize)])) {
         return error(enum_ident, "EnumPtr requires `#[repr(C, usize)]`");
     }
 
-    let new_enum_ident = format_ident!("Compact{enum_ident}");
     let variants = match data {
         Data::Enum(data_enum) => data_enum.variants,
         _ => unreachable!(), // `#[repr(C, usize)]` implies enum
@@ -58,18 +57,21 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         });
     }
 
+    let original_type = quote!(#enum_ident #generics);
+    let compact_type = quote!(::enum_ptr::Compact<#original_type>);
+
     // For unit variants, the latter `usize`s are uninitialized.
     // So we cannot simply do `tag | ptr`.
-    let get_data = if unit_variants.is_empty() {
-        quote! {{
+    let compaction = if unit_variants.is_empty() {
+        quote! {
             let [tag, ptr]: [usize; 2] = unsafe { ::core::mem::transmute(other) };
             unsafe { ::core::mem::transmute(tag | ptr) }
-        }}
+        }
     } else {
-        quote! {{
+        quote! {
             match other {
                 #(#enum_ident::#unit_variants)|* => {
-                    let tag = unsafe{ *(&other as *const _ as *const usize) };
+                    let tag = unsafe { *(&other as *const _ as *const usize) };
                     unsafe { ::core::mem::transmute(tag) }
                 }
                 _ => {
@@ -77,38 +79,22 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
                     unsafe { ::core::mem::transmute(tag | ptr) }
                 }
             }
-        }}
+        }
     };
 
     quote! {
-        #[repr(transparent)]
-        #vis struct #new_enum_ident #generics {
-            data: ::enum_ptr::Private<usize>,
-            phantom: ::core::marker::PhantomData<#enum_ident #generics>,
-        }
-
-        impl #generics Drop for #new_enum_ident #generics {
-            fn drop(&mut self) {
-                let this: Self = unsafe { ::core::mem::transmute_copy(self) };
-                let _ = #enum_ident::from(this);
-            }
-        }
-
-        impl #generics From<#new_enum_ident #generics> for #enum_ident #generics {
-            fn from(other: #new_enum_ident #generics) -> Self {
+        impl #generics From<#compact_type> for #original_type {
+            fn from(other: #compact_type) -> Self {
                 let data: usize = unsafe { ::core::mem::transmute(other) };
                 let tag_ptr = [data & #tag_mask, data & !#tag_mask];
                 unsafe { ::core::mem::transmute(tag_ptr) }
             }
         }
 
-        impl #generics From<#enum_ident #generics> for #new_enum_ident #generics {
-            fn from(other: #enum_ident #generics) -> Self {
+        impl #generics From<#original_type> for #compact_type {
+            fn from(other: #original_type) -> Self {
                 #(#asserts)*
-                Self {
-                    data: #get_data,
-                    phantom: ::core::marker::PhantomData,
-                }
+                #compaction
             }
         }
     }

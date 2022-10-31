@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use enum_ptr::EnumPtr;
+use enum_ptr::{Compact, EnumPtr};
 
 #[derive(EnumPtr)]
 #[repr(C, usize)]
@@ -14,5 +14,5 @@ enum Foo<'a, 'b, T> {
 }
 
 fn main() {
-    let _ = CompactFoo::from(Foo::<u64>::A(&0));
+    let _ = Compact::<Foo<u64>>::from(Foo::<u64>::A(&0));
 }

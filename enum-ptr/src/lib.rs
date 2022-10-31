@@ -36,7 +36,23 @@ unsafe impl<T> Compactable for Option<Box<T>> {
     type Pointee = T;
 }
 
-/// A private transparent wrapper of `T`. It avoids any manipulations on `T`
-/// in safe Rust. You have to transmute it to `T` before using it.
 #[repr(transparent)]
-pub struct Private<T>(T);
+pub struct Compact<T>
+where
+    T: From<Compact<T>>,
+    Compact<T>: From<T>,
+{
+    _data: usize,
+    phantom: core::marker::PhantomData<T>,
+}
+
+impl<T> Drop for Compact<T>
+where
+    T: From<Compact<T>>,
+    Compact<T>: From<T>,
+{
+    fn drop(&mut self) {
+        let this: Self = unsafe { ::core::mem::transmute_copy(self) };
+        let _ = T::from(this);
+    }
+}

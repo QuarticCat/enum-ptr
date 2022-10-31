@@ -1,4 +1,4 @@
-use enum_ptr::EnumPtr;
+use enum_ptr::{Compact, EnumPtr};
 
 #[test]
 fn unit_variants() {
@@ -9,6 +9,6 @@ fn unit_variants() {
         B(&'a i32),
     }
 
-    dbg!(Foo::from(CompactFoo::from(Foo::A)));
-    dbg!(Foo::from(CompactFoo::from(Foo::B(&42))));
+    dbg!(Foo::from(Compact::<Foo>::from(Foo::A)));
+    dbg!(Foo::from(Compact::<Foo>::from(Foo::B(&42))));
 }

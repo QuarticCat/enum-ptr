@@ -1,4 +1,4 @@
-use enum_ptr::EnumPtr;
+use enum_ptr::{Compact, EnumPtr};
 
 #[test]
 #[should_panic(expected = "`Foo::B` has no enough alignment")]
@@ -10,6 +10,6 @@ fn no_enough_alignment() {
         B(&'b i8),
     }
 
-    dbg!(Foo::from(CompactFoo::from(Foo::A(&42))));
-    dbg!(Foo::from(CompactFoo::from(Foo::B(&43))));
+    dbg!(Foo::from(Compact::<Foo>::from(Foo::A(&42))));
+    dbg!(Foo::from(Compact::<Foo>::from(Foo::B(&43))));
 }
