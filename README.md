@@ -1,4 +1,4 @@
-# Enum Ptr
+# Enum Ptr (WIP)
 
 This crate provides a custom derive macro `EnumPtr` to automatically generate compact representations of `enum`s of pointers and conversions between them with minimum cost. For example, the following code
 
