@@ -62,14 +62,23 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     // Generated code of different approaches and different enums:
     // https://rust.godbolt.org/z/z5Wb59c4j
     quote! {
+        #[repr(transparent)]
         #vis struct #new_enum_ident #generics {
             data: ::enum_ptr::Private<usize>,
             phantom: ::core::marker::PhantomData<#enum_ident #generics>,
         }
 
+        impl #generics Drop for #new_enum_ident #generics {
+            fn drop(&mut self) {
+                let data: usize = unsafe { ::core::mem::transmute_copy(self) };
+                let tag_ptr = [data & #tag_mask, data & !#tag_mask];
+                let _: #enum_ident #generics = unsafe { ::core::mem::transmute(tag_ptr) };
+            }
+        }
+
         impl #generics From<#new_enum_ident #generics> for #enum_ident #generics {
             fn from(other: #new_enum_ident #generics) -> Self {
-                let data: usize = unsafe { ::core::mem::transmute(other.data) };
+                let data: usize = unsafe { ::core::mem::transmute(other) };
                 let tag_ptr = [data & #tag_mask, data & !#tag_mask];
                 unsafe { ::core::mem::transmute(tag_ptr) }
             }
