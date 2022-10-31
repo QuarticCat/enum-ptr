@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput, Variant};
+use syn::{parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput};
 
 fn error(span: impl Spanned, message: impl Display) -> TokenStream {
     syn::Error::new(span.span(), message)
@@ -24,6 +24,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         return error(enum_ident, "EnumPtr requires `#[repr(C, usize)]`");
     }
 
+    let new_enum_ident = format_ident!("Compact{enum_ident}");
     let variants = match data {
         Data::Enum(data_enum) => data_enum.variants,
         _ => unreachable!(), // `#[repr(C, usize)]` implies enum
@@ -32,20 +33,20 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let tag_mask = min_align - 1;
 
     let mut asserts = Vec::new();
-    for Variant {
-        ident: variant_ident,
-        fields,
-        ..
-    } in variants
-    {
-        if fields.is_empty() {
+    let mut unit_variants = Vec::new();
+
+    for variant in variants {
+        if variant.fields.is_empty() {
+            unit_variants.push(variant);
             continue;
         }
-        if fields.len() > 1 {
-            return error(fields, "EnumPtr doesn't support multiple fields");
+
+        if variant.fields.len() > 1 {
+            return error(variant.fields, "EnumPtr doesn't support multiple fields");
         }
 
-        let field_type = &fields.into_iter().next().unwrap().ty;
+        let variant_ident = variant.ident;
+        let field_type = &variant.fields.iter().next().unwrap().ty;
         let assert_msg = format!("`{enum_ident}::{variant_ident}` has no enough alignment");
         asserts.push(quote! {
             assert!(
@@ -57,10 +58,28 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         });
     }
 
-    let new_enum_ident = format_ident!("Compact{enum_ident}");
+    // For unit variants, the latter `usize`s are uninitialized.
+    // So we cannot simply do `tag | ptr`.
+    let get_data = if unit_variants.is_empty() {
+        quote! {{
+            let [tag, ptr]: [usize; 2] = unsafe { ::core::mem::transmute(other) };
+            unsafe { ::core::mem::transmute(tag | ptr) }
+        }}
+    } else {
+        quote! {{
+            match other {
+                #(#enum_ident::#unit_variants)|* => {
+                    let tag = unsafe{ *(&other as *const _ as *const usize) };
+                    unsafe { ::core::mem::transmute(tag) }
+                }
+                _ => {
+                    let [tag, ptr]: [usize; 2] = unsafe { ::core::mem::transmute(other) };
+                    unsafe { ::core::mem::transmute(tag | ptr) }
+                }
+            }
+        }}
+    };
 
-    // Generated code of different approaches and different enums:
-    // https://rust.godbolt.org/z/z5Wb59c4j
     quote! {
         #[repr(transparent)]
         #vis struct #new_enum_ident #generics {
@@ -87,9 +106,8 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         impl #generics From<#enum_ident #generics> for #new_enum_ident #generics {
             fn from(other: #enum_ident #generics) -> Self {
                 #(#asserts)*
-                let [tag, ptr]: [usize; 2] = unsafe { ::core::mem::transmute(other) };
                 Self {
-                    data: unsafe { ::core::mem::transmute(tag | ptr) },
+                    data: #get_data,
                     phantom: ::core::marker::PhantomData,
                 }
             }
