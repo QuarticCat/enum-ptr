@@ -2,10 +2,11 @@
 members = ["enum-ptr", "enum-ptr-derive", "enum-ptr-tests"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 authors = ["QuarticCat <QuarticCat@protonmail.com>"]
 description = "Ergonomic tagged pointer"
 readme = "README.md"
 repository = "https://github.com/QuarticCat/enum-ptr"
+documentation = "https://docs.rs/enum-ptr/latest/enum_ptr/"
 license = "MIT OR Apache-2.0"
 edition = "2021"
