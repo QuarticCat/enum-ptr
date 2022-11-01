@@ -1,6 +1,9 @@
 /// # Safety
 ///
-/// - `T` is aligned by `align_of::<Pointee>()` (low bits are always zeros)
+/// `T` must be aligned by `align_of::<Pointee>()` (low bits are always zeros).
+///
+/// For example, raw pointers are not guaranteed to be aligned, so implementing
+/// this trait for them is unsound.
 pub unsafe trait Aligned {
     type Pointee;
 }
