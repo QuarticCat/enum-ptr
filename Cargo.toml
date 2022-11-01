@@ -7,6 +7,6 @@ authors = ["QuarticCat <QuarticCat@protonmail.com>"]
 description = "Ergonomic tagged pointer"
 readme = "README.md"
 repository = "https://github.com/QuarticCat/enum-ptr"
-documentation = "https://docs.rs/enum-ptr/latest/enum_ptr/"
+documentation = "https://docs.rs/enum-ptr/"
 license = "MIT OR Apache-2.0"
 edition = "2021"

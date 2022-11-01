@@ -54,7 +54,7 @@ enum-ptr = { version = "*", default-features = false }
 
 ### Code
 
-See [docs.rs](https://docs.rs/enum-ptr/latest/enum_ptr/)
+See [docs.rs](https://docs.rs/enum-ptr/)
 
 ## Credits
 
