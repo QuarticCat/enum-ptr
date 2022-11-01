@@ -90,8 +90,10 @@
 
 mod aligned;
 mod compact;
+mod enum_repr;
 
 pub use aligned::*;
 pub use compact::*;
+pub use enum_repr::*;
 
 pub use enum_ptr_derive::EnumPtr;

@@ -10,6 +10,6 @@ fn no_enough_alignment() {
         B(&'b i8),
     }
 
-    dbg!(Foo::from(Compact::<Foo>::from(Foo::A(&42))));
-    dbg!(Foo::from(Compact::<Foo>::from(Foo::B(&43))));
+    dbg!(Foo::from(Compact::from(Foo::A(&42))));
+    dbg!(Foo::from(Compact::from(Foo::B(&43))));
 }

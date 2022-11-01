@@ -9,6 +9,6 @@ fn unit_variants() {
         B(&'a i32),
     }
 
-    dbg!(Foo::from(Compact::<Foo>::from(Foo::A)));
-    dbg!(Foo::from(Compact::<Foo>::from(Foo::B(&42))));
+    dbg!(Foo::from(Compact::from(Foo::A)));
+    dbg!(Foo::from(Compact::from(Foo::B(&42))));
 }

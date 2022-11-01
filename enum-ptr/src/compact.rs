@@ -6,7 +6,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
-    _data: usize,
+    _data: *const u8,
     phantom: core::marker::PhantomData<T>,
 }
 
