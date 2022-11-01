@@ -1,3 +1,5 @@
+/// Mark that a pointer type is properly aligned and can be used in `EnumPtr`.
+///
 /// # Safety
 ///
 /// `T` must be aligned by `align_of::<Pointee>()` (low bits are always zeros).

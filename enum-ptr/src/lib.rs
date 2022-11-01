@@ -21,13 +21,13 @@
 //! - The `enum` can have generic parameters.
 //! - Its variants can be named (`X{...}`), unnamed (`X(...)`), or units (`X`).
 //! - Each variant can have at most one field.
-//! - Fields are required to implement [`Aligned`] trait.
+//! - Fields are required to implement the [`Aligned`] trait.
 //!
 //! # Extension
 //!
-//! To use your own pointer types in the fields, you only need you implement
-//! [`Aligned`] trait for it. But you are responsible to ensure the safety
-//! assertions of [`Aligned`].
+//! To use your own pointer types in the fields, you only need to implement
+//! the [`Aligned`] trait for it. Note that you are responsible to ensure the
+//! safety assertions of [`Aligned`].
 //!
 //! ```
 //! use enum_ptr::{Aligned, Compact, EnumPtr};
@@ -63,7 +63,7 @@
 //! }
 //! ```
 //!
-//! ## Limitations
+//! # Limitations
 //!
 //! Suppose we are deriving from `Foo`, then
 //!
