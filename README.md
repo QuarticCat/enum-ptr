@@ -1,4 +1,4 @@
-# Enum Ptr (WIP)
+# Enum Ptr
 
 This crate provides a custom derive macro `EnumPtr` to automatically generate bridges between `T` and `Compact<T>` with minimum cost. For example, the following code
 
@@ -28,6 +28,13 @@ impl<'a> From<enum_ptr::Compact<Foo<'a>>> for Foo<'a> {
 where `Compact<Foo<'a>>` is the compact representation of `Foo<'a>`. It is only one pointer wide.
 
 Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them are always zeros. `Compact<Foo<'a>>` utilizes these bits to store the tag (discriminant value).
+
+## Features
+
+- No need to write unsafe pointer operations
+- Support various pointer types and can be extended
+- Minimum type conversion cost
+- Verified through MIRI
 
 ## Usage
 
