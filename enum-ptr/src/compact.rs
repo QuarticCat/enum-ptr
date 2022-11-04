@@ -19,6 +19,14 @@ where
         let this: Self = unsafe { transmute_copy(self) };
         T::from(this)
     }
+
+    pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
+        f(&unsafe { self.decompact_copy() })
+    }
+
+    pub fn map_ref_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
+        f(&mut unsafe { self.decompact_copy() })
+    }
 }
 
 impl<T> Drop for Compact<T>
