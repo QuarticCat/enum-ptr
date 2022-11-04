@@ -10,14 +10,24 @@ where
     phantom: core::marker::PhantomData<T>,
 }
 
+impl<T> Compact<T>
+where
+    T: From<Compact<T>>,
+    Compact<T>: From<T>,
+{
+    unsafe fn decompact_copy(&self) -> T {
+        let this: Self = unsafe { transmute_copy(self) };
+        T::from(this)
+    }
+}
+
 impl<T> Drop for Compact<T>
 where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
     fn drop(&mut self) {
-        let this: Self = unsafe { transmute_copy(self) };
-        let _ = T::from(this);
+        let _ = unsafe { self.decompact_copy() };
     }
 }
 
@@ -27,8 +37,8 @@ where
     Compact<T>: From<T>,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let this: Self = unsafe { transmute_copy(self) };
-        T::from(this).fmt(f)
+        let this = unsafe { self.decompact_copy() };
+        this.fmt(f)
     }
 }
 
@@ -38,9 +48,9 @@ where
     Compact<T>: From<T>,
 {
     fn clone(&self) -> Self {
-        let this: Self = unsafe { transmute_copy(self) };
-        #[allow(clippy::redundant_clone)] // intended
-        T::from(this).clone().into()
+        let this = unsafe { self.decompact_copy() };
+        #[allow(clippy::redundant_clone)]
+        this.clone().into()
     }
 }
 
@@ -50,9 +60,9 @@ where
     Compact<T>: From<T>,
 {
     fn eq(&self, other: &Self) -> bool {
-        let this: Self = unsafe { transmute_copy(self) };
-        let that: Self = unsafe { transmute_copy(other) };
-        T::from(this).eq(&T::from(that))
+        let this = unsafe { self.decompact_copy() };
+        let that = unsafe { other.decompact_copy() };
+        this.eq(&that)
     }
 }
 
@@ -69,9 +79,9 @@ where
     Compact<T>: From<T>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        let this: Self = unsafe { transmute_copy(self) };
-        let that: Self = unsafe { transmute_copy(other) };
-        T::from(this).partial_cmp(&T::from(that))
+        let this = unsafe { self.decompact_copy() };
+        let that = unsafe { other.decompact_copy() };
+        this.partial_cmp(&that)
     }
 }
 
@@ -81,9 +91,9 @@ where
     Compact<T>: From<T>,
 {
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        let this: Self = unsafe { transmute_copy(self) };
-        let that: Self = unsafe { transmute_copy(other) };
-        T::from(this).cmp(&T::from(that))
+        let this = unsafe { self.decompact_copy() };
+        let that = unsafe { other.decompact_copy() };
+        this.cmp(&that)
     }
 }
 
@@ -93,7 +103,7 @@ where
     Compact<T>: From<T>,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        let this: Self = unsafe { transmute_copy(self) };
-        T::from(this).hash(state);
+        let this = unsafe { self.decompact_copy() };
+        this.hash(state);
     }
 }

@@ -1,7 +1,7 @@
 use enum_ptr::{Compact, EnumPtr};
 
 #[test]
-fn all() {
+fn equality() {
     #[derive(EnumPtr, Debug, PartialEq, Eq, Clone)]
     #[repr(C, usize)]
     enum Foo<'a, 'b> {
