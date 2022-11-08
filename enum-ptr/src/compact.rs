@@ -1,5 +1,12 @@
 use core::mem::transmute_copy;
 
+/// The compact representation of `T`. Only one pointer wide.
+///
+/// Under the hood, it is simply a transparent wrapper of `*const u8`. The
+/// inner data field is set private to ensure safety. For any case that you
+/// need to access the inner data, just [`transmute`] it.
+///
+/// [`transmute`]: `std::mem::transmute`
 #[repr(transparent)]
 pub struct Compact<T>
 where
@@ -20,10 +27,40 @@ where
         T::from(this)
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use enum_ptr::{Compact, EnumPtr};
+    /// #
+    /// # #[derive(EnumPtr, Debug)]
+    /// # #[repr(C, usize)]
+    /// # enum Foo<'a, 'b> {
+    /// #     A(&'a i32),
+    /// #     B(&'b i32),
+    /// # }
+    /// #
+    /// let mut foo: Compact<_> = Foo::A(&1).into();
+    /// foo.map_ref(|f: &Foo| println!("{f:?}"));
+    /// ```
     pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
         func(&unsafe { self.decompact_copy() })
     }
 
+    /// # Examples
+    ///
+    /// ```
+    /// # use enum_ptr::{Compact, EnumPtr};
+    /// #
+    /// # #[derive(EnumPtr, Debug)]
+    /// # #[repr(C, usize)]
+    /// # enum Foo<'a, 'b> {
+    /// #     A(&'a i32),
+    /// #     B(&'b i32),
+    /// # }
+    /// #
+    /// let mut foo: Compact<_> = Foo::A(&1).into();
+    /// foo.map_ref_mut(|f: &mut Foo| println!("{f:?}"));
+    /// ```
     pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
         func(&mut unsafe { self.decompact_copy() })
     }
