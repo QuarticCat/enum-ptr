@@ -20,12 +20,12 @@ where
         T::from(this)
     }
 
-    pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
-        f(&unsafe { self.decompact_copy() })
+    pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
+        func(&unsafe { self.decompact_copy() })
     }
 
-    pub fn map_ref_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
-        f(&mut unsafe { self.decompact_copy() })
+    pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
+        func(&mut unsafe { self.decompact_copy() })
     }
 }
 
@@ -45,8 +45,7 @@ where
     Compact<T>: From<T>,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let this = unsafe { self.decompact_copy() };
-        this.fmt(f)
+        self.map_ref(|this| this.fmt(f))
     }
 }
 
@@ -56,9 +55,7 @@ where
     Compact<T>: From<T>,
 {
     fn clone(&self) -> Self {
-        let this = unsafe { self.decompact_copy() };
-        #[allow(clippy::redundant_clone)]
-        this.clone().into()
+        self.map_ref(|this| this.clone().into())
     }
 }
 
@@ -68,9 +65,7 @@ where
     Compact<T>: From<T>,
 {
     fn eq(&self, other: &Self) -> bool {
-        let this = unsafe { self.decompact_copy() };
-        let that = unsafe { other.decompact_copy() };
-        this.eq(&that)
+        self.map_ref(|this| other.map_ref(|that| this.eq(that)))
     }
 }
 
@@ -87,9 +82,7 @@ where
     Compact<T>: From<T>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        let this = unsafe { self.decompact_copy() };
-        let that = unsafe { other.decompact_copy() };
-        this.partial_cmp(&that)
+        self.map_ref(|this| other.map_ref(|that| this.partial_cmp(that)))
     }
 }
 
@@ -99,9 +92,7 @@ where
     Compact<T>: From<T>,
 {
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        let this = unsafe { self.decompact_copy() };
-        let that = unsafe { other.decompact_copy() };
-        this.cmp(&that)
+        self.map_ref(|this| other.map_ref(|that| this.cmp(that)))
     }
 }
 
@@ -111,7 +102,6 @@ where
     Compact<T>: From<T>,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        let this = unsafe { self.decompact_copy() };
-        this.hash(state);
+        self.map_ref(|this| this.hash(state))
     }
 }
