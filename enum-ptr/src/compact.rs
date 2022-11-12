@@ -21,7 +21,12 @@ where
         self.data
     }
 
-    unsafe fn decompact_copy(&self) -> T {
+    /// An alias of `T::from(self)`.
+    pub fn extract(self) -> T {
+        self.into()
+    }
+
+    unsafe fn extract_copy(&self) -> T {
         let this: Self = unsafe { transmute_copy(self) };
         T::from(this)
     }
@@ -42,7 +47,7 @@ where
     /// foo.map_ref(|f: &Foo| println!("{f:?}"));
     /// ```
     pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
-        func(&unsafe { self.decompact_copy() })
+        func(&unsafe { self.extract_copy() })
     }
 
     /// # Examples
@@ -61,7 +66,18 @@ where
     /// foo.map_ref_mut(|f: &mut Foo| println!("{f:?}"));
     /// ```
     pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
-        func(&mut unsafe { self.decompact_copy() })
+        func(&mut unsafe { self.extract_copy() })
+    }
+}
+
+impl<T> Compact<T>
+where
+    T: From<Compact<T>> + Clone,
+    Compact<T>: From<T>,
+{
+    /// An alias of `self.map_ref(|t| t.clone())`.
+    pub fn extract_clone(&self) -> T {
+        self.map_ref(|this| this.clone())
     }
 }
 
@@ -71,7 +87,7 @@ where
     Compact<T>: From<T>,
 {
     fn drop(&mut self) {
-        let _ = unsafe { self.decompact_copy() };
+        let _ = unsafe { self.extract_copy() };
     }
 }
 
