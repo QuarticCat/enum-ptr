@@ -1,19 +1,13 @@
 use core::mem::transmute_copy;
 
 /// The compact representation of `T`. Only one pointer wide.
-///
-/// Under the hood, it is simply a transparent wrapper of `*const u8`. The
-/// inner data field is set private to ensure safety. For any case that you
-/// need to access the inner data, just [`transmute`] it.
-///
-/// [`transmute`]: `std::mem::transmute`
 #[repr(transparent)]
 pub struct Compact<T>
 where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
-    _data: *const u8,
+    data: *const u8,
     phantom: core::marker::PhantomData<T>,
 }
 
@@ -22,6 +16,11 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    /// Get the inner data.
+    pub fn inner(&self) -> *const u8 {
+        self.data
+    }
+
     unsafe fn decompact_copy(&self) -> T {
         let this: Self = unsafe { transmute_copy(self) };
         T::from(this)
