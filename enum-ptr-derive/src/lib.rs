@@ -65,7 +65,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let compaction = if unit_variants.is_empty() {
         quote! {
             let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
-            unsafe { ::core::mem::transmute(ptr.add(tag)) }
+            unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
         }
     } else {
         quote! {
