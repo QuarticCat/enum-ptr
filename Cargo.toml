@@ -2,7 +2,7 @@
 members = ["enum-ptr", "enum-ptr-derive", "enum-ptr-tests"]
 
 [workspace.package]
-version = "0.1.4"
+version = "0.1.5"
 authors = ["QuarticCat <QuarticCat@pm.me>"]
 description = "Ergonomic tagged pointer"
 readme = "README.md"
