@@ -21,6 +21,6 @@ error[E0512]: cannot transmute between types of different sizes, or dependently-
 5 | #[derive(EnumPtr)]
   |          ^^^^^^^
   |
-  = note: source type: `EnumRepr` (128 bits)
+  = note: source type: `PtrRepr` (128 bits)
   = note: target type: `Foo` (192 bits)
   = note: this error originates in the derive macro `EnumPtr` (in Nightly builds, run with -Z macro-backtrace for more info)

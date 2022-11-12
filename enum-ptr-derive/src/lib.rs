@@ -64,19 +64,19 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     // So we cannot simply do `tag | ptr`.
     let compaction = if unit_variants.is_empty() {
         quote! {
-            let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
+            let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
             unsafe { ::core::mem::transmute(ptr.add(tag)) }
         }
     } else {
         quote! {
             match other {
                 #(#enum_ident::#unit_variants)|* => {
-                    let tag = unsafe { *(&other as *const _ as *const usize) };
+                    let ::enum_ptr::UnitRepr(tag, _) = unsafe { ::core::mem::transmute(other) };
                     let ptr: *const u8 = ::core::ptr::null();
                     unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
                 }
                 _ => {
-                    let ::enum_ptr::EnumRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
+                    let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
                     unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
                 }
             }
@@ -96,7 +96,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
                 let data: *const u8 = unsafe { ::core::mem::transmute(other) };
                 let tag = data as usize & #tag_mask;
                 let ptr = data.wrapping_sub(tag);
-                unsafe { ::core::mem::transmute(::enum_ptr::EnumRepr(tag, ptr)) }
+                unsafe { ::core::mem::transmute(::enum_ptr::PtrRepr(tag, ptr)) }
             }
         }
     }
