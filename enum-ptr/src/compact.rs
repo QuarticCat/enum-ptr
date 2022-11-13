@@ -49,7 +49,7 @@ where
     pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
         let this = unsafe { self.extract_copy() };
         let ret = func(&this);
-        std::mem::forget(this);
+        core::mem::forget(this);
         ret
     }
 
@@ -71,7 +71,7 @@ where
     pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
         let mut this = unsafe { self.extract_copy() };
         let ret = func(&mut this);
-        std::mem::forget(this);
+        core::mem::forget(this);
         ret
     }
 }
