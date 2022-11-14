@@ -33,8 +33,9 @@ Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them ar
 
 - No need to write unsafe pointer operations
 - Supports various pointer types and can be extended
+- Supports `no_std`
 - Minimum type conversion cost
-- Passes `cargo +nightly miri test`
+- Passes `cargo +nightly miri test` with strict provenance enabled.
 
 ## Usage
 
@@ -45,7 +46,7 @@ Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them ar
 enum-ptr = "*"
 ```
 
-This crate also supports `no_std`.
+With `no_std` support:
 
 ```toml
 [dependencies]
@@ -55,6 +56,15 @@ enum-ptr = { version = "*", default-features = false }
 ### Code
 
 See [docs.rs](https://docs.rs/enum-ptr/)
+
+## Testing
+
+```console
+$ cargo test
+$ cargo test --no-default-features
+$ cargo +nightly miri test
+$ cargo +nightly miri test --no-default-features
+```
 
 ## Credits
 

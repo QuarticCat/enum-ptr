@@ -8,6 +8,7 @@
 //! enum Foo<'a, 'b, T> {
 //!     A(&'a T),
 //!     B { ptr: &'b mut i64 },
+//! #     #[cfg(feature = "std")]
 //!     C(Option<Box<i64>>),
 //!     D(),
 //!     E {},
@@ -55,6 +56,7 @@
 //! ```
 //! use enum_ptr::EnumPtr;
 //!
+//! # #[cfg(feature = "std")]
 //! #[derive(EnumPtr)]
 //! #[repr(C, usize)]
 //! enum Foo {

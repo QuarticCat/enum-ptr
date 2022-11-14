@@ -6,7 +6,10 @@ fn equality() {
     #[repr(C, usize)]
     enum Foo<'a, 'b> {
         A(&'a u64),
-        B { ptr: &'b i64 },
+        B {
+            ptr: &'b i64,
+        },
+        #[cfg(feature = "std")]
         C(Option<Box<i64>>),
         D(),
         E {},
@@ -17,8 +20,11 @@ fn equality() {
 
     test(Foo::A(&0));
     test(Foo::B { ptr: &1 });
-    test(Foo::C(None));
-    test(Foo::C(Some(Box::new(2))));
+    #[cfg(feature = "std")]
+    {
+        test(Foo::C(None));
+        test(Foo::C(Some(Box::new(2))));
+    }
     test(Foo::D());
     test(Foo::E {});
     test(Foo::F);
