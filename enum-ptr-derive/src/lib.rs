@@ -85,6 +85,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
     quote! {
         impl #generics From<#original_type> for #compact_type {
+            #[inline]
             fn from(other: #original_type) -> Self {
                 #(#asserts)*
                 #compaction
@@ -92,6 +93,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         }
 
         impl #generics From<#compact_type> for #original_type {
+            #[inline]
             fn from(other: #compact_type) -> Self {
                 let data: *const u8 = unsafe { ::core::mem::transmute(other) };
                 let tag = data as usize & #tag_mask;

@@ -17,15 +17,18 @@ where
     Compact<T>: From<T>,
 {
     /// Get the inner data.
+    #[inline]
     pub fn inner(&self) -> *const u8 {
         self.data
     }
 
     /// An alias of `T::from(self)`.
+    #[inline]
     pub fn extract(self) -> T {
         self.into()
     }
 
+    #[inline]
     unsafe fn extract_copy(&self) -> T {
         let this: Self = unsafe { transmute_copy(self) };
         T::from(this)
@@ -46,6 +49,7 @@ where
     /// let mut foo: Compact<_> = Foo::A(&1).into();
     /// foo.map_ref(|f: &Foo| println!("{f:?}"));
     /// ```
+    #[inline]
     pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
         let this = unsafe { self.extract_copy() };
         let ret = func(&this);
@@ -68,6 +72,7 @@ where
     /// let mut foo: Compact<_> = Foo::A(&1).into();
     /// foo.map_ref_mut(|f: &mut Foo| println!("{f:?}"));
     /// ```
+    #[inline]
     pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
         let mut this = unsafe { self.extract_copy() };
         let ret = func(&mut this);
@@ -82,6 +87,7 @@ where
     Compact<T>: From<T>,
 {
     /// An alias of `self.map_ref(|t| t.clone())`.
+    #[inline]
     pub fn extract_clone(&self) -> T {
         self.map_ref(|this| this.clone())
     }
@@ -92,6 +98,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn drop(&mut self) {
         let _ = unsafe { self.extract_copy() };
     }
@@ -102,6 +109,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.map_ref(|this| this.fmt(f))
     }
@@ -112,6 +120,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn clone(&self) -> Self {
         self.map_ref(|this| this.clone().into())
     }
@@ -122,6 +131,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.map_ref(|this| other.map_ref(|that| this.eq(that)))
     }
@@ -139,6 +149,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         self.map_ref(|this| other.map_ref(|that| this.partial_cmp(that)))
     }
@@ -149,6 +160,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         self.map_ref(|this| other.map_ref(|that| this.cmp(that)))
     }
@@ -159,6 +171,7 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
+    #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.map_ref(|this| this.hash(state))
     }
