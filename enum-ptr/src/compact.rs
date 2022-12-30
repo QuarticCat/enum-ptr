@@ -176,3 +176,17 @@ where
         self.map_ref(|this| this.hash(state))
     }
 }
+
+unsafe impl<T> Send for Compact<T>
+where
+    T: From<Compact<T>> + Send,
+    Compact<T>: From<T>,
+{
+}
+
+unsafe impl<T> Sync for Compact<T>
+where
+    T: From<Compact<T>> + Sync,
+    Compact<T>: From<T>,
+{
+}
