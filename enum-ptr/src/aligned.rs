@@ -1,8 +1,5 @@
 use core::mem::align_of;
 
-#[cfg(feature = "alloc")]
-use alloc::boxed::Box;
-
 /// Mark that a pointer type is properly aligned and can be used in `EnumPtr`.
 ///
 /// # Safety
@@ -15,18 +12,11 @@ pub unsafe trait Aligned {
     const ALIGNMENT: usize;
 }
 
-// TODO: impl `Aligned` for `Rc` & `Arc` when `usize::min` is const
-
 unsafe impl<'a, T> Aligned for &'a T {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
 unsafe impl<'a, T> Aligned for &'a mut T {
-    const ALIGNMENT: usize = align_of::<T>();
-}
-
-#[cfg(feature = "alloc")]
-unsafe impl<T> Aligned for Box<T> {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
@@ -39,6 +29,47 @@ unsafe impl<'a, T> Aligned for Option<&'a mut T> {
 }
 
 #[cfg(feature = "alloc")]
-unsafe impl<T> Aligned for Option<Box<T>> {
-    const ALIGNMENT: usize = align_of::<T>();
+mod alloc_impl {
+    use super::*;
+
+    use alloc::boxed::Box;
+    use alloc::rc::Rc;
+    use alloc::sync::Arc;
+
+    // TODO: remove it when `Ord::max` is made const
+    const fn max(a: usize, b: usize) -> usize {
+        if a > b {
+            a
+        } else {
+            b
+        }
+    }
+
+    unsafe impl<T> Aligned for Box<T> {
+        const ALIGNMENT: usize = align_of::<T>();
+    }
+
+    /// It makes assumption on the layout of `Rc`. Use it with caution.
+    unsafe impl<T> Aligned for Rc<T> {
+        const ALIGNMENT: usize = max(align_of::<T>(), align_of::<usize>());
+    }
+
+    /// It makes assumption on the layout of `Arc`. Use it with caution.
+    unsafe impl<T> Aligned for Arc<T> {
+        const ALIGNMENT: usize = max(align_of::<T>(), align_of::<usize>());
+    }
+
+    unsafe impl<T> Aligned for Option<Box<T>> {
+        const ALIGNMENT: usize = align_of::<T>();
+    }
+
+    /// It makes assumption on the layout of `Rc`. Use it with caution.
+    unsafe impl<T> Aligned for Option<Rc<T>> {
+        const ALIGNMENT: usize = max(align_of::<T>(), align_of::<usize>());
+    }
+
+    /// It makes assumption on the layout of `Arc`. Use it with caution.
+    unsafe impl<T> Aligned for Option<Arc<T>> {
+        const ALIGNMENT: usize = max(align_of::<T>(), align_of::<usize>());
+    }
 }
