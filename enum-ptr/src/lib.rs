@@ -36,7 +36,7 @@
 //! struct MyPtr<T>(*const T);
 //!
 //! unsafe impl<T> Aligned for MyPtr<T> {
-//!     type Pointee = T;
+//!     const ALIGNMENT: usize = std::mem::align_of::<T>();
 //! }
 //!
 //! #[derive(EnumPtr)]

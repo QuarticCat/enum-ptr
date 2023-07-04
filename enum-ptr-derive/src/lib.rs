@@ -49,9 +49,7 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         let assert_msg = format!("`{enum_ident}::{variant_ident}` has no enough alignment");
         asserts.push(quote! {
             assert!(
-                ::core::mem::align_of::<
-                    <#field_type as ::enum_ptr::Aligned>::Pointee
-                >() >= #min_align,
+                <#field_type as ::enum_ptr::Aligned>::ALIGNMENT >= #min_align,
                 #assert_msg
             );
         });
