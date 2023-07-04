@@ -1,4 +1,7 @@
-use std::mem::align_of;
+use core::mem::align_of;
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
 
 /// Mark that a pointer type is properly aligned and can be used in `EnumPtr`.
 ///
@@ -20,7 +23,7 @@ unsafe impl<'a, T> Aligned for &'a mut T {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 unsafe impl<T> Aligned for Box<T> {
     const ALIGNMENT: usize = align_of::<T>();
 }
@@ -33,7 +36,7 @@ unsafe impl<'a, T> Aligned for Option<&'a mut T> {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 unsafe impl<T> Aligned for Option<Box<T>> {
     const ALIGNMENT: usize = align_of::<T>();
 }

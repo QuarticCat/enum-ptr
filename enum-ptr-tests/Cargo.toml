@@ -12,8 +12,8 @@ license.workspace = true
 edition.workspace = true
 
 [features]
-default = ["std"]
-std = ["enum-ptr/std"]
+default = ["alloc"]
+alloc = ["enum-ptr/alloc"]
 
 [dependencies]
 enum-ptr = { path = "../enum-ptr", default-features = false }

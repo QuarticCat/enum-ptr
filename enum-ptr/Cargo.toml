@@ -11,8 +11,8 @@ license.workspace = true
 edition.workspace = true
 
 [features]
-default = ["std"]
-std = []
+default = ["alloc"]
+alloc = []
 
 [dependencies]
 enum-ptr-derive = { version = "0.1.8", path = "../enum-ptr-derive" }
