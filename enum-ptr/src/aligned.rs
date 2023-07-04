@@ -15,6 +15,8 @@ pub unsafe trait Aligned {
     const ALIGNMENT: usize;
 }
 
+// TODO: impl `Aligned` for `Rc` & `Arc` when `usize::min` is const
+
 unsafe impl<'a, T> Aligned for &'a T {
     const ALIGNMENT: usize = align_of::<T>();
 }

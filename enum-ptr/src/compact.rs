@@ -1,4 +1,4 @@
-use core::mem::transmute_copy;
+use core::mem::{transmute_copy, ManuallyDrop};
 
 /// The compact representation of `T`. Only one pointer wide.
 #[repr(transparent)]
@@ -51,10 +51,8 @@ where
     /// ```
     #[inline]
     pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
-        let this = unsafe { self.extract_copy() };
-        let ret = func(&this);
-        core::mem::forget(this);
-        ret
+        let this = unsafe { ManuallyDrop::new(self.extract_copy()) };
+        func(&this)
     }
 
     /// # Examples
@@ -74,10 +72,8 @@ where
     /// ```
     #[inline]
     pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
-        let mut this = unsafe { self.extract_copy() };
-        let ret = func(&mut this);
-        core::mem::forget(this);
-        ret
+        let mut this = unsafe { ManuallyDrop::new(self.extract_copy()) };
+        func(&mut this)
     }
 }
 
@@ -125,6 +121,8 @@ where
         self.map_ref(|this| this.clone().into())
     }
 }
+
+// TODO: find a way to mark `Copy` when `T: Copy`
 
 impl<T: PartialEq> PartialEq for Compact<T>
 where
