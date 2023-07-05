@@ -14,7 +14,7 @@ fn main() {
     foo.map_ref(|f| match f {
         Foo::A(r) | Foo::B(r) => r,
     });
-    foo.map_ref_mut(|f| match f {
+    foo.map_mut(|f| match f {
         Foo::A(r) | Foo::B(r) => r,
     });
 }

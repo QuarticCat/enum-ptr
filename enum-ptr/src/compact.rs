@@ -68,10 +68,10 @@ where
     /// # }
     /// #
     /// let mut foo: Compact<_> = Foo::A(&1).into();
-    /// foo.map_ref_mut(|f: &mut Foo| println!("{f:?}"));
+    /// foo.map_mut(|f: &mut Foo| println!("{f:?}"));
     /// ```
     #[inline]
-    pub fn map_ref_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
+    pub fn map_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
         let mut this = unsafe { ManuallyDrop::new(self.extract_copy()) };
         func(&mut this)
     }
