@@ -4,7 +4,7 @@ use crate::Aligned;
 #[repr(C)]
 pub struct PtrRepr(pub usize, pub *const u8);
 
-/// Nothing but a zero value. [`UNIT`] is its only instance.
+/// Nothing but zeros. [`UNIT`] is its only instance.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default, Hash)]
 #[repr(transparent)]
 pub struct Unit(usize);

@@ -3,20 +3,19 @@
 //! ```
 //! use enum_ptr::{Compact, EnumPtr, Unit};
 //!
+//! # #[derive(Debug, PartialEq, Eq, Clone)]
 //! #[derive(EnumPtr)]
-//! # #[derive(Debug, PartialEq, Eq, Clone)] // only for testing
 //! #[repr(C, usize)] // required
 //! enum Foo<'a, 'b> {
-//!     A(&'a u64),
-//!     B {
-//!         ptr: &'b i64,
-//!     },
+//!     // supports any type that implements `Aligned`
+//!     A(&'a u64),          // can be unnamed variant
+//!     B { ptr: &'b i64 },  // or named variant
 //! #    #[cfg(feature = "alloc")]
 //!     C(Option<Box<i64>>),
-//!     D(Unit),
+//!     D(Unit),             // use `Unit` for unit variants
 //! }
 //!
-//! let compact_foo: Compact<_> = Foo::A(&0u64).into();
+//! let compact_foo: Compact<_> = Foo::A(&0).into();
 //! let original_foo: Foo = compact_foo.into();
 //! #
 //! # let test = |f: Foo| assert_eq!(Foo::from(Compact::from(f.clone())), f);
@@ -29,9 +28,8 @@
 //!
 //! # Extension
 //!
-//! To use your own types (may not be pointers) in the fields, you need to
-//! implement the [`Aligned`] trait for it. Note that you are responsible to
-//! ensure the safety assertions of [`Aligned`].
+//! To use your own types (may not be pointers) in the fields, you only need to
+//! implement the [`Aligned`] trait for them.
 //!
 //! ```
 //! use enum_ptr::{Aligned, Compact, EnumPtr};

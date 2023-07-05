@@ -50,9 +50,9 @@ where
     /// foo.map_ref(|f: &Foo| println!("{f:?}"));
     /// ```
     #[inline]
-    pub fn map_ref<U>(&self, func: impl FnOnce(&T) -> U) -> U {
+    pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
         let this = unsafe { ManuallyDrop::new(self.extract_copy()) };
-        func(&this)
+        f(&this)
     }
 
     /// # Examples
@@ -71,9 +71,9 @@ where
     /// foo.map_mut(|f: &mut Foo| println!("{f:?}"));
     /// ```
     #[inline]
-    pub fn map_mut<U>(&mut self, func: impl FnOnce(&mut T) -> U) -> U {
+    pub fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
         let mut this = unsafe { ManuallyDrop::new(self.extract_copy()) };
-        func(&mut this)
+        f(&mut this)
     }
 }
 
