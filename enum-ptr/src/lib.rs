@@ -1,28 +1,23 @@
 //! # Basic Usage
 //!
 //! ```
-//! use enum_ptr::{Compact, EnumPtr};
+//! use enum_ptr::{Compact, EnumPtr, Unit};
 //!
 //! #[derive(EnumPtr)]
 //! #[repr(C, usize)] // required
-//! enum Foo<'a, 'b, T> {
-//!     A(&'a T),
-//!     B { ptr: &'b mut i64 },
-//! #     #[cfg(feature = "std")]
+//! enum Foo<'a, 'b> {
+//!     A(&'a u64),
+//!     B {
+//!         ptr: &'b i64,
+//!     },
+//! #    #[cfg(feature = "alloc")]
 //!     C(Option<Box<i64>>),
-//!     D(),
-//!     E {},
-//!     F,
+//!     D(Unit),
 //! }
 //!
 //! let compact_foo: Compact<_> = Foo::A(&0u64).into();
-//! let original_foo: Foo<_> = compact_foo.into();
+//! let original_foo: Foo = compact_foo.into();
 //! ```
-//!
-//! - The `enum` can have generic parameters.
-//! - Its variants can be named (`X{...}`), unnamed (`X(...)`), or units (`X`).
-//! - Each variant can have at most one field.
-//! - Fields are required to implement the [`Aligned`] trait.
 //!
 //! # Extension
 //!
@@ -47,24 +42,6 @@
 //! }
 //! ```
 //!
-//! # Caveats
-//!
-//! Due to safety issues, when the `enum` contains units, the generated code
-//! will be less performant. You can substitute unit variants with pointers
-//! to avoid this situation.
-//!
-//! ```
-//! use enum_ptr::EnumPtr;
-//!
-//! # #[cfg(feature = "std")]
-//! #[derive(EnumPtr)]
-//! #[repr(C, usize)]
-//! enum Foo {
-//!     A(Box<i64>),
-//!     B, // -> B(Option<Box<i64>>)
-//! }
-//! ```
-//!
 //! # Limitations
 //!
 //! Suppose we are deriving from `Foo`, then
@@ -77,7 +54,9 @@
 //!     guarantees the memory layout and discriminant values. Thus, we can
 //!     safely transmute between two representations.
 //! - Each variant of `Foo` must have enough alignment to store the tag.
-//! - Each variant of `Foo` must have at most one field.
+//! - Each variant of `Foo` must have exactly one field due to performance
+//!   concerns.
+//!   - If you need a unit variant, use [`Unit`].
 //!
 //! Any violation of these rules will trigger a compilation error except
 //! the alignment rule. If not, please file an issue.
@@ -95,10 +74,10 @@ extern crate alloc;
 
 mod aligned;
 mod compact;
-mod enum_repr;
+mod utils;
 
 pub use aligned::*;
 pub use compact::*;
-pub use enum_repr::*;
+pub use utils::*;
 
 pub use enum_ptr_derive::EnumPtr;

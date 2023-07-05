@@ -1,5 +1,5 @@
 error: EnumPtr requires `#[repr(C, usize)]`
- --> tests/fail/no_repr.rs:6:6
+ --> $DIR/no_repr.rs:6:6
   |
 6 | enum Foo<'a, 'b> {
   |      ^^^

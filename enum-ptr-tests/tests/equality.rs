@@ -1,4 +1,4 @@
-use enum_ptr::{Compact, EnumPtr};
+use enum_ptr::{Compact, EnumPtr, Unit, UNIT};
 
 #[test]
 fn equality() {
@@ -9,23 +9,19 @@ fn equality() {
         B {
             ptr: &'b i64,
         },
-        #[cfg(feature = "std")]
+        #[cfg(feature = "alloc")]
         C(Option<Box<i64>>),
-        D(),
-        E {},
-        F,
+        D(Unit),
     }
 
     let test = |f: Foo| assert_eq!(Foo::from(Compact::from(f.clone())), f);
 
     test(Foo::A(&0));
     test(Foo::B { ptr: &1 });
-    #[cfg(feature = "std")]
+    #[cfg(feature = "alloc")]
     {
         test(Foo::C(None));
         test(Foo::C(Some(Box::new(2))));
     }
-    test(Foo::D());
-    test(Foo::E {});
-    test(Foo::F);
+    test(Foo::D(UNIT));
 }

@@ -9,4 +9,11 @@ enum Foo<'a, 'b> {
     B(&'b i32, *const i32),
 }
 
+#[derive(EnumPtr)]
+#[repr(C, usize)]
+enum Bar<'a> {
+    A(&'a i32),
+    B,
+}
+
 fn main() {}

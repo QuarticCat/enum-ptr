@@ -1,5 +1,7 @@
 use core::mem::{transmute_copy, ManuallyDrop};
 
+// TODO: impl as many traits as possible
+
 /// The compact representation of `T`. Only one pointer wide.
 #[repr(transparent)]
 pub struct Compact<T>

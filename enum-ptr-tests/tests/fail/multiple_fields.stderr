@@ -1,5 +1,0 @@
-error: EnumPtr doesn't support multiple fields
- --> tests/fail/multiple_fields.rs:9:6
-  |
-9 |     B(&'b i32, *const i32),
-  |      ^^^^^^^^^^^^^^^^^^^^^

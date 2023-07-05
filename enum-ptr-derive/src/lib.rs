@@ -32,16 +32,10 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let tag_mask = min_align - 1;
 
     let mut asserts = Vec::new();
-    let mut unit_variants = Vec::new();
 
     for variant in variants {
-        if variant.fields.is_empty() {
-            unit_variants.push(variant);
-            continue;
-        }
-
-        if variant.fields.len() > 1 {
-            return error(variant.fields, "EnumPtr doesn't support multiple fields");
+        if variant.fields.len() != 1 {
+            return error(&variant, "EnumPtr only supports single field");
         }
 
         let variant_ident = variant.ident;
@@ -60,33 +54,13 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
     // For unit variants, the latter `usize`s are uninitialized.
     // So we cannot simply do `tag | ptr`.
-    let compaction = if unit_variants.is_empty() {
-        quote! {
-            let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
-            unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
-        }
-    } else {
-        quote! {
-            match other {
-                #(#enum_ident::#unit_variants)|* => {
-                    let ::enum_ptr::UnitRepr(tag, _) = unsafe { ::core::mem::transmute(other) };
-                    let ptr: *const u8 = ::core::ptr::null();
-                    unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
-                }
-                _ => {
-                    let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
-                    unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
-                }
-            }
-        }
-    };
-
     quote! {
         impl #generics From<#original_type> for #compact_type {
             #[inline]
             fn from(other: #original_type) -> Self {
                 #(#asserts)*
-                #compaction
+                let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
+                unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
             }
         }
 
