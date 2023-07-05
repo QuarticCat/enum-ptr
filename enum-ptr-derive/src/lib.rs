@@ -37,10 +37,10 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         if variant.fields.len() != 1 {
             return error(&variant, "EnumPtr only supports single field");
         }
-
         let variant_ident = variant.ident;
         let field_type = &variant.fields.iter().next().unwrap().ty;
         let assert_msg = format!("`{enum_ident}::{variant_ident}` has no enough alignment");
+        // TODO: change to static asserts when available (one problem is generic variables)
         asserts.push(quote! {
             assert!(
                 <#field_type as ::enum_ptr::Aligned>::ALIGNMENT >= #min_align,
@@ -52,8 +52,6 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
     let original_type = quote!(#enum_ident #generics);
     let compact_type = quote!(::enum_ptr::Compact<#original_type>);
 
-    // For unit variants, the latter `usize`s are uninitialized.
-    // So we cannot simply do `tag | ptr`.
     quote! {
         impl #generics From<#original_type> for #compact_type {
             #[inline]
