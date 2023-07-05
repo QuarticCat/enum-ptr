@@ -1,7 +1,5 @@
 use core::mem::{transmute_copy, ManuallyDrop};
 
-// TODO: impl as many traits as possible
-
 /// The compact representation of `T`. Only one pointer wide.
 #[repr(transparent)]
 pub struct Compact<T>
@@ -102,20 +100,9 @@ where
     }
 }
 
-impl<T: core::fmt::Debug> core::fmt::Debug for Compact<T>
+impl<T> Clone for Compact<T>
 where
-    T: From<Compact<T>>,
-    Compact<T>: From<T>,
-{
-    #[inline]
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.map_ref(|this| this.fmt(f))
-    }
-}
-
-impl<T: Clone> Clone for Compact<T>
-where
-    T: From<Compact<T>>,
+    T: From<Compact<T>> + Clone,
     Compact<T>: From<T>,
 {
     #[inline]
@@ -126,9 +113,9 @@ where
 
 // TODO: find a way to mark `Copy` when `T: Copy`
 
-impl<T: PartialEq> PartialEq for Compact<T>
+impl<T> PartialEq for Compact<T>
 where
-    T: From<Compact<T>>,
+    T: From<Compact<T>> + PartialEq,
     Compact<T>: From<T>,
 {
     #[inline]
@@ -137,16 +124,16 @@ where
     }
 }
 
-impl<T: Eq> Eq for Compact<T>
+impl<T> Eq for Compact<T>
 where
-    T: From<Compact<T>>,
+    T: From<Compact<T>> + Eq,
     Compact<T>: From<T>,
 {
 }
 
-impl<T: PartialOrd> PartialOrd for Compact<T>
+impl<T> PartialOrd for Compact<T>
 where
-    T: From<Compact<T>>,
+    T: From<Compact<T>> + PartialOrd,
     Compact<T>: From<T>,
 {
     #[inline]
@@ -155,9 +142,9 @@ where
     }
 }
 
-impl<T: Ord> Ord for Compact<T>
+impl<T> Ord for Compact<T>
 where
-    T: From<Compact<T>>,
+    T: From<Compact<T>> + Ord,
     Compact<T>: From<T>,
 {
     #[inline]
@@ -166,9 +153,30 @@ where
     }
 }
 
-impl<T: core::hash::Hash> core::hash::Hash for Compact<T>
+impl<T> core::fmt::Debug for Compact<T>
 where
-    T: From<Compact<T>>,
+    T: From<Compact<T>> + core::fmt::Debug,
+    Compact<T>: From<T>,
+{
+    #[inline]
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        self.map_ref(|this| this.fmt(f))
+    }
+}
+
+impl<T> Default for Compact<T>
+where
+    T: From<Compact<T>> + Default,
+    Compact<T>: From<T>,
+{
+    fn default() -> Self {
+        T::default().into()
+    }
+}
+
+impl<T> core::hash::Hash for Compact<T>
+where
+    T: From<Compact<T>> + core::hash::Hash,
     Compact<T>: From<T>,
 {
     #[inline]
