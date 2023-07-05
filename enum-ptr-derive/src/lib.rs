@@ -37,6 +37,10 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         if variant.fields.len() != 1 {
             return error(&variant, "EnumPtr only supports single field");
         }
+        // TODO: support discriminant later
+        if variant.discriminant.is_some() {
+            return error(&variant, "EnumPtr doesn't support discriminants");
+        }
         let variant_ident = variant.ident;
         let field_type = &variant.fields.iter().next().unwrap().ty;
         let assert_msg = format!("`{enum_ident}::{variant_ident}` has no enough alignment");

@@ -1,5 +1,5 @@
 error: lifetime may not live long enough
-  --> $DIR/map_lifetime.rs:15:34
+  --> tests/fail/map_lifetime.rs:15:34
    |
 14 |     foo.map_ref(|f| match f {
    |                  -- return type of closure is &'2 &i32
@@ -9,7 +9,7 @@ error: lifetime may not live long enough
    |                                  ^ returning this value requires that `'1` must outlive `'2`
 
 error: lifetime may not live long enough
-  --> $DIR/map_lifetime.rs:18:34
+  --> tests/fail/map_lifetime.rs:18:34
    |
 17 |     foo.map_mut(|f| match f {
    |                  -- return type of closure is &'2 mut &i32
