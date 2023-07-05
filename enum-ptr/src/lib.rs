@@ -21,8 +21,8 @@
 //!
 //! # Extension
 //!
-//! To use your own pointer types in the fields, you only need to implement
-//! the [`Aligned`] trait for it. Note that you are responsible to ensure the
+//! To use your own pointer types in the fields, you need to implement the
+//! [`Aligned`] trait for it. Note that you are responsible to ensure the
 //! safety assertions of [`Aligned`].
 //!
 //! ```
@@ -46,17 +46,17 @@
 //!
 //! Suppose we are deriving from `Foo`, then
 //!
-//! - `Foo` must be 2 pointers wide.
+//! - **`Foo` must be 2 pointers wide.**
 //!   - If `Foo` is smaller, it is already in the compact representation.
 //!   - If `Foo` is larger, this crate cannot compress it into a `usize`.
-//! - `Foo` must have a `#[repr(C, usize)]`.
+//! - **`Foo` must have a `#[repr(C, usize)]`.**
 //!   - According to the [RFC] and the [Rust Reference], `#[repr(C, usize)]`
 //!     guarantees the memory layout and discriminant values. Thus, we can
 //!     safely transmute between two representations.
-//! - Each variant of `Foo` must have enough alignment to store the tag.
-//! - Each variant of `Foo` must have exactly one field due to performance
-//!   concerns.
+//! - **Each variant of `Foo` must have exactly one field.**
+//!   - Unit variants are not allowed due to performance concerns.
 //!   - If you need a unit variant, use [`Unit`].
+//! - **Each variant of `Foo` must have enough alignment to store the tag.**
 //!
 //! Any violation of these rules will trigger a compilation error except
 //! the alignment rule. If not, please file an issue.
@@ -66,6 +66,10 @@
 //!
 //! [RFC]: https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md
 //! [Rust Reference]: https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
+//!
+//! # Features
+//!
+//! - `alloc` (default) - `Box`, `Rc`, and `Arc` support
 
 #![no_std]
 

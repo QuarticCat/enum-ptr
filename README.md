@@ -40,33 +40,11 @@ Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them ar
 - Minimum type conversion cost
 - Passes `cargo +nightly miri test` with strict provenance enabled.
 
-## Usage
-
-### Dependencies
-
-```toml
-[dependencies]
-enum-ptr = "*"
-```
-
-With `no_std` support:
-
-```toml
-[dependencies]
-enum-ptr = { version = "*", default-features = false }
-```
-
-### Code
-
-See [docs.rs](https://docs.rs/enum-ptr/)
-
 ## Testing
 
 ```console
 $ cargo test
-$ cargo test --no-default-features
 $ cargo +nightly miri test
-$ cargo +nightly miri test --no-default-features
 ```
 
 ## Credits
