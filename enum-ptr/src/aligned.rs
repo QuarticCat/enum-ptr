@@ -1,6 +1,6 @@
 use core::mem::align_of;
 
-/// Mark that a pointer type is properly aligned and can be used in `EnumPtr`.
+/// Mark that a type is properly aligned and can be used in `EnumPtr`.
 ///
 /// # Safety
 ///

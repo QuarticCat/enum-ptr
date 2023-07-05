@@ -21,11 +21,11 @@ enum Foo<'a> {
 will generate
 
 ```rust
-impl<'a> From<Foo<'a>> for enum_ptr::Compact<Foo<'a>> {
+impl<'a> From<Foo<'a>> for Compact<Foo<'a>> {
     // ...
 }
 
-impl<'a> From<enum_ptr::Compact<Foo<'a>>> for Foo<'a> {
+impl<'a> From<Compact<Foo<'a>>> for Foo<'a> {
     // ...
 }
 ```

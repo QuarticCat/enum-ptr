@@ -21,9 +21,9 @@
 //!
 //! # Extension
 //!
-//! To use your own pointer types in the fields, you need to implement the
-//! [`Aligned`] trait for it. Note that you are responsible to ensure the
-//! safety assertions of [`Aligned`].
+//! To use your own types (may not be pointers) in the fields, you need to
+//! implement the [`Aligned`] trait for it. Note that you are responsible to
+//! ensure the safety assertions of [`Aligned`].
 //!
 //! ```
 //! use enum_ptr::{Aligned, Compact, EnumPtr};
