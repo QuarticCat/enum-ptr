@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput};
+use syn::{parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput, Fields};
 
 fn error(span: impl Spanned, message: impl Display) -> TokenStream {
     syn::Error::new(span.span(), message)
@@ -33,15 +33,18 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
     let mut asserts = Vec::new();
 
-    for variant in variants {
+    for variant in &variants {
+        if !matches!(variant.fields, Fields::Unnamed(_)) {
+            return error(variant, "EnumPtr only supports unnamed variant");
+        }
         if variant.fields.len() != 1 {
-            return error(&variant, "EnumPtr only supports single field");
+            return error(variant, "EnumPtr only supports single field");
         }
         // TODO: support discriminant later
         if variant.discriminant.is_some() {
-            return error(&variant, "EnumPtr doesn't support discriminants");
+            return error(variant, "EnumPtr doesn't support discriminants");
         }
-        let variant_ident = variant.ident;
+        let variant_ident = &variant.ident;
         let field_type = &variant.fields.iter().next().unwrap().ty;
         let assert_msg = format!("`{enum_ident}::{variant_ident}` has no enough alignment");
         // TODO: change to static asserts when available (one problem is generic variables)

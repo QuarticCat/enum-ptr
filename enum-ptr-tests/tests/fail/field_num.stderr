@@ -1,11 +1,11 @@
 error: EnumPtr only supports single field
- --> tests/fail/single_field.rs:9:5
+ --> tests/fail/field_num.rs:9:5
   |
 9 |     B(&'b i32, *const i32),
   |     ^
 
 error: EnumPtr only supports single field
-  --> tests/fail/single_field.rs:16:5
+  --> tests/fail/field_num.rs:16:5
    |
-16 |     B,
+16 |     B(),
    |     ^

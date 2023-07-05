@@ -1,0 +1,5 @@
+error: EnumPtr only supports unnamed variant
+ --> tests/fail/field_type.rs:9:5
+  |
+9 |     B { ptr: &'b i32 },
+  |     ^

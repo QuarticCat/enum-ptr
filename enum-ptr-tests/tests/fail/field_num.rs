@@ -13,7 +13,7 @@ enum Foo<'a, 'b> {
 #[repr(C, usize)]
 enum Bar<'a> {
     A(&'a i32),
-    B,
+    B(),
 }
 
 fn main() {}
