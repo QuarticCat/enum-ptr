@@ -6,51 +6,31 @@
 //! # #[derive(Debug, PartialEq, Eq, Clone)]
 //! #[derive(EnumPtr)]
 //! #[repr(C, usize)] // required
-//! enum Foo<'a> {
-//!     A(&'a u64),
+//! enum Foo<'a, T: Aligned> {
+//!     A(T),       // support any `T: Aligned`
+//!     B(&'a u64),
+//!     C(Unit),    // use `Unit` for unit variants
 //! #    #[cfg(feature = "alloc")]
-//!     C(Option<Box<i64>>),
-//!     D(Unit),             // use `Unit` for unit variants
+//!     D(Option<Box<i64>>),
 //! }
 //!
-//! let compact_foo: Compact<_> = Foo::A(&0).into();
-//! let original_foo: Foo = compact_foo.into();
+//! let compact_foo: Compact<_> = Foo::A(&0i32).into();
+//! let original_foo: Foo<_> = compact_foo.into();
 //! #
-//! # let test = |f: Foo| assert_eq!(Foo::from(Compact::from(f.clone())), f);
+//! # let test = |f: Foo<&i32>| assert_eq!(f.clone(), Foo::from(Compact::from(f)));
 //! # test(Foo::A(&0));
+//! # test(Foo::B(&1));
+//! # test(Foo::C(enum_ptr::UNIT));
 //! # #[cfg(feature = "alloc")]
-//! # test(Foo::C(Some(Box::new(2))));
-//! # test(Foo::D(enum_ptr::UNIT));
+//! # test(Foo::D(Some(Box::new(2))));
 //! ```
 //!
-//! # Extension
-//!
-//! You can implement [`Aligned`] for your own types (may not be pointers).
-//!
-//! ```
-//! use enum_ptr::{Aligned, Compact, EnumPtr};
-//!
-//! struct MyPtr<T>(*const T);
-//!
-//! unsafe impl<T> Aligned for MyPtr<T> {
-//!     const ALIGNMENT: usize = std::mem::align_of::<T>();
-//! }
-//!
-//! #[derive(EnumPtr)]
-//! #[repr(C, usize)]
-//! enum Foo {
-//!     A(MyPtr<i64>),
-//!     B(MyPtr<u64>),
-//! }
-//! ```
+//! You can implement [`Aligned`] for your own types.
 //!
 //! # Limitations
 //!
 //! Suppose we are deriving from `Foo`, then
 //!
-//! - **`Foo` must be 2 pointers wide.**
-//!   - If `Foo` is smaller, it is already in the compact representation.
-//!   - If `Foo` is larger, this crate cannot compress it into a `usize`.
 //! - **`Foo` must have a `#[repr(C, usize)]`.**
 //!   - According to the [RFC] and the [Rust Reference], `#[repr(C, usize)]`
 //!     guarantees the memory layout and discriminant values. Thus, we can
@@ -60,18 +40,15 @@
 //!   - If you need a unit variant, use [`Unit`].
 //! - **Each variant of `Foo` must have enough alignment to store the tag.**
 //!
-//! Any violation of these rules will trigger a compilation error except
-//! the alignment rule. If not, please file an issue.
-//!
-//! If some variant has no enough alignment, it will trigger a run-time panic.
-//! Otherwise, assertions will be optimized away.
+//! Any violation of these rules will either trigger a compilation error or
+//! a run-time panic. Passed assertions will be optimized away.
 //!
 //! [RFC]: https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md
 //! [Rust Reference]: https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
 //!
 //! # Features
 //!
-//! - `alloc` (default) - `Box`, `Rc`, and `Arc` support
+//! - `alloc` *(default)* --- `Box`, `Rc`, and `Arc` support
 
 #![no_std]
 

@@ -56,26 +56,34 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         });
     }
 
-    let original_type = quote!(#enum_ident #generics);
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let original_type = quote!(#enum_ident #ty_generics);
     let compact_type = quote!(::enum_ptr::Compact<#original_type>);
 
     quote! {
-        impl #generics From<#original_type> for #compact_type {
+        impl #impl_generics From<#original_type> for #compact_type #where_clause {
             #[inline]
             fn from(other: #original_type) -> Self {
+                use ::core::mem::{transmute, transmute_copy, ManuallyDrop};
+                use ::enum_ptr::PtrRepr;
+
                 #(#asserts)*
-                let ::enum_ptr::PtrRepr(tag, ptr) = unsafe { ::core::mem::transmute(other) };
-                unsafe { ::core::mem::transmute(ptr.wrapping_add(tag)) }
+
+                let PtrRepr(tag, ptr) = unsafe { transmute_copy(&ManuallyDrop::new(other)) };
+                unsafe { transmute(ptr.wrapping_add(tag)) }
             }
         }
 
-        impl #generics From<#compact_type> for #original_type {
+        impl #impl_generics From<#compact_type> for #original_type #where_clause {
             #[inline]
             fn from(other: #compact_type) -> Self {
-                let data: *const u8 = unsafe { ::core::mem::transmute(other) };
+                use ::core::mem::{transmute, transmute_copy};
+                use ::enum_ptr::PtrRepr;
+
+                let data: *const u8 = unsafe { transmute(other) };
                 let tag = data as usize & #tag_mask;
                 let ptr = data.wrapping_sub(tag);
-                unsafe { ::core::mem::transmute(::enum_ptr::PtrRepr(tag, ptr)) }
+                unsafe { transmute_copy(&PtrRepr(tag, ptr)) }
             }
         }
     }

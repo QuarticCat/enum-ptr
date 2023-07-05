@@ -1,13 +1,34 @@
 use core::mem::align_of;
 
-/// Mark that a type is properly aligned and can be used in `EnumPtr`.
+/// Types (may not be pointers) that can be used in `EnumPtr`.
 ///
 /// # Safety
 ///
-/// `T` must be aligned by `ALIGNMENT` (low bits are always zeros).
+/// - `T` must be exactly one-pointer wide.
+/// - `T`'s pointee must be aligned by `ALIGNMENT` (`T`'s low bits are zeros).
 ///
 /// For example, raw pointers are not guaranteed to be aligned, so implementing
 /// this trait for them is unsound.
+///
+/// # Examples
+///
+/// ```
+/// use enum_ptr::{Aligned, Compact, EnumPtr};
+///
+/// // It's your responsibility to ensure `MyPtr` is always aligned.
+/// struct MyPtr<T>(*const T);
+///
+/// unsafe impl<T> Aligned for MyPtr<T> {
+///     const ALIGNMENT: usize = std::mem::align_of::<T>();
+/// }
+///
+/// #[derive(EnumPtr)]
+/// #[repr(C, usize)]
+/// enum Foo {
+///     A(MyPtr<i64>),
+///     B(MyPtr<u64>),
+/// }
+/// ```
 pub unsafe trait Aligned {
     const ALIGNMENT: usize;
 }

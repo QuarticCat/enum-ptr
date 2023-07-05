@@ -2,7 +2,7 @@ use enum_ptr::{Compact, EnumPtr};
 
 #[test]
 #[should_panic(expected = "`Foo::B` has no enough alignment")]
-fn no_enough_alignment() {
+fn alignment_assert() {
     #[derive(Debug, EnumPtr)]
     #[repr(C, usize)]
     enum Foo<'a, 'b> {

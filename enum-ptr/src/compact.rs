@@ -1,6 +1,8 @@
-use core::mem::{transmute_copy, ManuallyDrop};
+use core::mem::ManuallyDrop;
 
-/// The compact representation of `T`. Only one pointer wide.
+/// A compact representation of `T`. Only one-pointer wide.
+///
+/// It behaves like `T` for `Drop`, `Clone`, `Hash`, `Eq`, `Ord`, ...
 #[repr(transparent)]
 pub struct Compact<T>
 where
@@ -8,7 +10,7 @@ where
     Compact<T>: From<T>,
 {
     data: *const u8,
-    phantom: core::marker::PhantomData<T>,
+    marker: core::marker::PhantomData<T>,
 }
 
 impl<T> Compact<T>
@@ -22,16 +24,10 @@ where
         self.data
     }
 
-    /// An alias of `T::from(self)`.
+    /// Alias of `T::from(self)`.
     #[inline]
     pub fn extract(self) -> T {
         self.into()
-    }
-
-    #[inline]
-    unsafe fn extract_copy(&self) -> T {
-        let this: Self = unsafe { transmute_copy(self) };
-        T::from(this)
     }
 
     /// # Examples
@@ -51,7 +47,7 @@ where
     /// ```
     #[inline]
     pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
-        let this = unsafe { ManuallyDrop::new(self.extract_copy()) };
+        let this = ManuallyDrop::new(T::from(Self { ..*self }));
         f(&this)
     }
 
@@ -72,7 +68,7 @@ where
     /// ```
     #[inline]
     pub fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
-        let mut this = unsafe { ManuallyDrop::new(self.extract_copy()) };
+        let mut this = ManuallyDrop::new(T::from(Self { ..*self }));
         f(&mut this)
     }
 }
@@ -82,7 +78,7 @@ where
     T: From<Compact<T>> + Clone,
     Compact<T>: From<T>,
 {
-    /// An alias of `self.map_ref(|t| t.clone())`.
+    /// Alias of `self.map_ref(|t| t.clone())`.
     #[inline]
     pub fn extract_clone(&self) -> T {
         self.map_ref(|this| this.clone())
@@ -96,7 +92,7 @@ where
 {
     #[inline]
     fn drop(&mut self) {
-        let _ = unsafe { self.extract_copy() };
+        drop(T::from(Self { ..*self }));
     }
 }
 
