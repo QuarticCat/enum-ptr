@@ -4,6 +4,7 @@
 //! use enum_ptr::{Compact, EnumPtr, Unit};
 //!
 //! #[derive(EnumPtr)]
+//! # #[derive(Debug, PartialEq, Eq, Clone)] // only for testing
 //! #[repr(C, usize)] // required
 //! enum Foo<'a, 'b> {
 //!     A(&'a u64),
@@ -17,6 +18,13 @@
 //!
 //! let compact_foo: Compact<_> = Foo::A(&0u64).into();
 //! let original_foo: Foo = compact_foo.into();
+//! #
+//! # let test = |f: Foo| assert_eq!(Foo::from(Compact::from(f.clone())), f);
+//! # test(Foo::A(&0));
+//! # test(Foo::B { ptr: &1 });
+//! # #[cfg(feature = "alloc")]
+//! # test(Foo::C(Some(Box::new(2))));
+//! # test(Foo::D(enum_ptr::UNIT));
 //! ```
 //!
 //! # Extension
