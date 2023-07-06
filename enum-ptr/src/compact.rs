@@ -1,8 +1,6 @@
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 
-use crate::compact;
-
 /// Compact representation of `T`. Only one-pointer wide.
 ///
 /// It behaves like `T` for `Drop`, `Clone`, `Hash`, `Eq`, `Ord`, ...
@@ -42,10 +40,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #[cfg(feature = "alloc")]
-    /// # {
-    /// # use enum_ptr::{Compact, EnumPtr};
-    /// #
+    /// # #[cfg(feature = "alloc")] {
+    /// use enum_ptr::{Compact, EnumPtr};
+    ///
     /// #[derive(EnumPtr, Debug)]
     /// #[repr(C, usize)]
     /// enum Foo {
@@ -79,10 +76,9 @@ where
     /// # Examples
     ///
     /// ```
-    /// # #[cfg(feature = "alloc")]
-    /// # {
-    /// # use enum_ptr::{Compact, EnumPtr};
-    /// #
+    /// # #[cfg(feature = "alloc")] {
+    /// use enum_ptr::{Compact, EnumPtr};
+    ///
     /// #[derive(EnumPtr, Debug, PartialEq, Eq)]
     /// #[repr(C, usize)]
     /// enum Foo {
@@ -105,36 +101,35 @@ where
         f(&mut ManuallyDrop::new(T::from(Self { ..*self })))
     }
 
-    /// Replaces the wrapped value with a new one computed from f, returning
-    /// the old value, without deinitializing either one.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #[cfg(feature = "alloc")]
-    /// # {
-    /// # use enum_ptr::{Compact, EnumPtr};
-    /// #
-    /// #[derive(EnumPtr, Debug, PartialEq, Eq)]
-    /// #[repr(C, usize)]
-    /// enum Foo {
-    ///     A(Box<i32>),
-    ///     B(Box<u32>),
-    /// }
-    ///
-    /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
-    /// let old = foo.replace_with(|_| Foo::B(Box::new(2)));
-    /// assert_eq!(old, Foo::A(Box::new(1)));
-    /// assert_eq!(foo.extract(), Foo::B(Box::new(2)));
-    /// # }
-    /// ```
-    #[inline]
-    pub fn replace_with(&mut self, f: impl FnOnce(&mut T) -> T) -> T {
-        let mut old = T::from(Self { ..*self });
-        let new = f(&mut old);
-        self.data = unsafe { compact(new) };
-        old
-    }
+    // /// Replaces the wrapped value with a new one computed from f, returning
+    // /// the old value, without deinitializing either one.
+    // ///
+    // /// # Examples
+    // ///
+    // /// ```
+    // /// # #[cfg(feature = "alloc")] {
+    // /// use enum_ptr::{Compact, EnumPtr};
+    // ///
+    // /// #[derive(EnumPtr, Debug, PartialEq, Eq)]
+    // /// #[repr(C, usize)]
+    // /// enum Foo {
+    // ///     A(Box<i32>),
+    // ///     B(Box<u32>),
+    // /// }
+    // ///
+    // /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
+    // /// let old = foo.replace_with(|_| Foo::B(Box::new(2)));
+    // /// assert_eq!(old, Foo::A(Box::new(1)));
+    // /// assert_eq!(foo.extract(), Foo::B(Box::new(2)));
+    // /// # }
+    // /// ```
+    // #[inline]
+    // pub fn replace_with(&mut self, f: impl FnOnce(&mut T) -> T) -> T {
+    //     let mut old = T::from(Self { ..*self });
+    //     let new = f(&mut old);
+    //     self.data = unsafe { crate::compact(new) };
+    //     old
+    // }
 }
 
 impl<T> Drop for Compact<T>
