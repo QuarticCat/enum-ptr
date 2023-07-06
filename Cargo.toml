@@ -1,5 +1,5 @@
 [workspace]
-members = ["enum-ptr", "enum-ptr-derive", "enum-ptr-tests"]
+members = ["enum-ptr", "enum-ptr-derive", "enum-ptr-test"]
 
 [workspace.package]
 version = "0.1.8"

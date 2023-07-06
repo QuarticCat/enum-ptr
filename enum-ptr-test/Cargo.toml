@@ -1,5 +1,5 @@
 [package]
-name = "enum-ptr-tests"
+name = "enum-ptr-test"
 publish = false
 
 version.workspace = true
