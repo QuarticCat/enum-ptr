@@ -14,7 +14,9 @@ fn main() {
     foo.map_ref(|f| match f {
         Foo::A(r) | Foo::B(r) => r,
     });
-    foo.map_mut(|f| match f {
-        Foo::A(r) | Foo::B(r) => r,
-    });
+    unsafe {
+        foo.map_mut(|f| match f {
+            Foo::A(r) | Foo::B(r) => r,
+        });
+    }
 }

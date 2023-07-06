@@ -9,11 +9,11 @@ error: lifetime may not live long enough
    |                                  ^ returning this value requires that `'1` must outlive `'2`
 
 error: lifetime may not live long enough
-  --> tests/fail/map_lifetime.rs:18:34
+  --> tests/fail/map_lifetime.rs:19:38
    |
-17 |     foo.map_mut(|f| match f {
-   |                  -- return type of closure is &'2 mut &i32
-   |                  |
-   |                  has type `&'1 mut Foo<'_, '_>`
-18 |         Foo::A(r) | Foo::B(r) => r,
-   |                                  ^ returning this value requires that `'1` must outlive `'2`
+18 |         foo.map_mut(|f| match f {
+   |                      -- return type of closure is &'2 mut &i32
+   |                      |
+   |                      has type `&'1 mut Foo<'_, '_>`
+19 |             Foo::A(r) | Foo::B(r) => r,
+   |                                      ^ returning this value requires that `'1` must outlive `'2`

@@ -1,6 +1,8 @@
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 
+use crate::compact;
+
 /// Compact representation of `T`. Only one-pointer wide.
 ///
 /// It behaves like `T` for `Drop`, `Clone`, `Hash`, `Eq`, `Ord`, ...
@@ -70,8 +72,9 @@ where
     /// Since the value is temporary, you cannot take references to it out
     /// from this function.
     ///
-    /// Also, modifying `&mut T` itself (e.g., `foo.map_mut(|f| *f = new_f)`)
-    /// won't have any effect for the same reason.
+    /// # Safety
+    ///
+    /// See issue [#3](https://github.com/QuarticCat/enum-ptr/issues/3).
     ///
     /// # Examples
     ///
@@ -88,16 +91,49 @@ where
     /// }
     ///
     /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
-    /// foo.map_mut(|f| match f {
-    ///     Foo::A(r) => **r = 2,
-    ///     _ => unreachable!(),
-    /// });
+    /// unsafe {
+    ///     foo.map_mut(|f| match f {
+    ///         Foo::A(r) => **r = 2,
+    ///         _ => unreachable!(),
+    ///     });
+    /// }
     /// assert_eq!(foo.extract(), Foo::A(Box::new(2)));
     /// # }
     /// ```
     #[inline]
-    pub fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
+    pub unsafe fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
         f(&mut ManuallyDrop::new(T::from(Self { ..*self })))
+    }
+
+    /// Replaces the wrapped value with a new one computed from f, returning
+    /// the old value, without deinitializing either one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "alloc")]
+    /// # {
+    /// # use enum_ptr::{Compact, EnumPtr};
+    /// #
+    /// #[derive(EnumPtr, Debug, PartialEq, Eq)]
+    /// #[repr(C, usize)]
+    /// enum Foo {
+    ///     A(Box<i32>),
+    ///     B(Box<u32>),
+    /// }
+    ///
+    /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
+    /// let old = foo.replace_with(|_| Foo::B(Box::new(2)));
+    /// assert_eq!(old, Foo::A(Box::new(1)));
+    /// assert_eq!(foo.extract(), Foo::B(Box::new(2)));
+    /// # }
+    /// ```
+    #[inline]
+    pub fn replace_with(&mut self, f: impl FnOnce(&mut T) -> T) -> T {
+        let mut old = T::from(Self { ..*self });
+        let new = f(&mut old);
+        self.data = unsafe { compact(new) };
+        old
     }
 }
 

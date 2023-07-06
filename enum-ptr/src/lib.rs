@@ -20,7 +20,7 @@
 //! # let test = |f: Foo<&i32>| assert_eq!(f.clone(), Foo::from(Compact::from(f)));
 //! # test(Foo::A(&0));
 //! # test(Foo::B(&1));
-//! # test(Foo::C(enum_ptr::UNIT));
+//! # test(Foo::C(Unit::new()));
 //! # #[cfg(feature = "alloc")]
 //! # test(Foo::D(Some(Box::new(2))));
 //! ```
