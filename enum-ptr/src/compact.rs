@@ -1,3 +1,4 @@
+use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 
 /// A compact representation of `T`. Only one-pointer wide.
@@ -10,7 +11,7 @@ where
     Compact<T>: From<T>,
 {
     data: *const u8,
-    marker: core::marker::PhantomData<T>,
+    marker: PhantomData<T>,
 }
 
 impl<T> Compact<T>
@@ -47,8 +48,7 @@ where
     /// ```
     #[inline]
     pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
-        let this = ManuallyDrop::new(T::from(Self { ..*self }));
-        f(&this)
+        f(&ManuallyDrop::new(T::from(Self { ..*self })))
     }
 
     /// # Examples
@@ -68,20 +68,7 @@ where
     /// ```
     #[inline]
     pub fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
-        let mut this = ManuallyDrop::new(T::from(Self { ..*self }));
-        f(&mut this)
-    }
-}
-
-impl<T> Compact<T>
-where
-    T: From<Compact<T>> + Clone,
-    Compact<T>: From<T>,
-{
-    /// Alias of `self.map_ref(|t| t.clone())`.
-    #[inline]
-    pub fn extract_clone(&self) -> T {
-        self.map_ref(|this| this.clone())
+        f(&mut ManuallyDrop::new(T::from(Self { ..*self })))
     }
 }
 
@@ -106,8 +93,6 @@ where
         self.map_ref(|this| this.clone().into())
     }
 }
-
-// TODO: find a way to mark `Copy` when `T: Copy`
 
 impl<T> PartialEq for Compact<T>
 where

@@ -41,7 +41,8 @@
 //! - **Each variant of `Foo` must have enough alignment to store the tag.**
 //!
 //! Any violation of these rules will either trigger a compilation error or
-//! a run-time panic. Passed assertions will be optimized away.
+//! a run-time panic. Passed assertions will be optimized away. That is to say,
+//! rule checks won't affect the run-time performance.
 //!
 //! [RFC]: https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md
 //! [Rust Reference]: https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
@@ -57,10 +58,14 @@ extern crate alloc;
 
 mod aligned;
 mod compact;
+mod compact_copy;
+mod convert;
 mod utils;
 
 pub use aligned::*;
 pub use compact::*;
+pub use compact_copy::*;
+pub use convert::*;
 pub use utils::*;
 
-pub use enum_ptr_derive::EnumPtr;
+pub use enum_ptr_derive::*;

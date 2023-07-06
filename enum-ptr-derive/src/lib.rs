@@ -10,8 +10,7 @@ fn error(span: impl Spanned, message: impl Display) -> TokenStream {
         .into()
 }
 
-#[proc_macro_derive(EnumPtr)]
-pub fn enum_ptr(input: TokenStream) -> TokenStream {
+fn enum_ptr_derive(input: TokenStream, is_copy: bool) -> TokenStream {
     let DeriveInput {
         attrs,
         ident: enum_ident,
@@ -58,29 +57,33 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let original_type = quote!(#enum_ident #ty_generics);
-    let compact_type = quote!(::enum_ptr::Compact<#original_type>);
+    let compact_type = if is_copy {
+        quote!(::enum_ptr::CompactCopy<#original_type>)
+    } else {
+        quote!(::enum_ptr::Compact<#original_type>)
+    };
 
     quote! {
         impl #impl_generics From<#original_type> for #compact_type #where_clause {
             #[inline]
-            fn from(other: #original_type) -> Self {
+            fn from(value: #original_type) -> Self {
                 use ::core::mem::{transmute, transmute_copy, ManuallyDrop};
                 use ::enum_ptr::PtrRepr;
 
                 #(#asserts)*
 
-                let PtrRepr(tag, ptr) = unsafe { transmute_copy(&ManuallyDrop::new(other)) };
+                let PtrRepr(tag, ptr) = unsafe { transmute_copy(&ManuallyDrop::new(value)) };
                 unsafe { transmute(ptr.wrapping_add(tag)) }
             }
         }
 
         impl #impl_generics From<#compact_type> for #original_type #where_clause {
             #[inline]
-            fn from(other: #compact_type) -> Self {
+            fn from(value: #compact_type) -> Self {
                 use ::core::mem::{transmute, transmute_copy};
                 use ::enum_ptr::PtrRepr;
 
-                let data: *const u8 = unsafe { transmute(other) };
+                let data: *const u8 = unsafe { transmute(value) };
                 let tag = data as usize & #tag_mask;
                 let ptr = data.wrapping_sub(tag);
                 unsafe { transmute_copy(&PtrRepr(tag, ptr)) }
@@ -88,4 +91,14 @@ pub fn enum_ptr(input: TokenStream) -> TokenStream {
         }
     }
     .into()
+}
+
+#[proc_macro_derive(EnumPtr)]
+pub fn enum_ptr(input: TokenStream) -> TokenStream {
+    enum_ptr_derive(input, false)
+}
+
+#[proc_macro_derive(EnumPtrCopy)]
+pub fn enum_ptr_copy(input: TokenStream) -> TokenStream {
+    enum_ptr_derive(input, true)
 }
