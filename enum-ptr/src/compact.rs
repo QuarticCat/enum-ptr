@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 
-/// A compact representation of `T`. Only one-pointer wide.
+/// Compact representation of `T`. Only one-pointer wide.
 ///
 /// It behaves like `T` for `Drop`, `Clone`, `Hash`, `Eq`, `Ord`, ...
 #[repr(transparent)]
@@ -19,9 +19,9 @@ where
     T: From<Compact<T>>,
     Compact<T>: From<T>,
 {
-    /// Get the inner data.
+    /// Returns the underlying raw data.
     #[inline]
-    pub fn inner(&self) -> *const u8 {
+    pub fn as_raw_data(&self) -> *const u8 {
         self.data
     }
 
@@ -31,40 +31,69 @@ where
         self.into()
     }
 
+    /// Maps a `&T` to `U` by applying a function to a temporarily created
+    /// `T` value.
+    ///
+    /// Since the value is temporary, you cannot take references to it out
+    /// from this function.
+    ///
     /// # Examples
     ///
     /// ```
+    /// # #[cfg(feature = "alloc")]
+    /// # {
     /// # use enum_ptr::{Compact, EnumPtr};
     /// #
-    /// # #[derive(EnumPtr, Debug)]
-    /// # #[repr(C, usize)]
-    /// # enum Foo<'a, 'b> {
-    /// #     A(&'a i32),
-    /// #     B(&'b i32),
+    /// #[derive(EnumPtr, Debug)]
+    /// #[repr(C, usize)]
+    /// enum Foo {
+    ///     A(Box<i32>),
+    ///     B(Box<u32>),
+    /// }
+    ///
+    /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
+    /// let result = foo.map_ref(|f| match f {
+    ///     Foo::A(r) => **r,
+    ///     _ => unreachable!(),
+    /// });
+    /// assert_eq!(result, 1);
     /// # }
-    /// #
-    /// let mut foo: Compact<_> = Foo::A(&1).into();
-    /// foo.map_ref(|f: &Foo| println!("{f:?}"));
     /// ```
     #[inline]
     pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
         f(&ManuallyDrop::new(T::from(Self { ..*self })))
     }
 
+    /// Maps a `&mut T` to `U` by applying a function to a temporarily created
+    /// `T` value.
+    ///
+    /// Since the value is temporary, you cannot take references to it out
+    /// from this function.
+    ///
+    /// Also, modifying `&mut T` itself (e.g., `foo.map_mut(|f| *f = new_f)`)
+    /// won't have any effect for the same reason.
+    ///
     /// # Examples
     ///
     /// ```
+    /// # #[cfg(feature = "alloc")]
+    /// # {
     /// # use enum_ptr::{Compact, EnumPtr};
     /// #
-    /// # #[derive(EnumPtr, Debug)]
-    /// # #[repr(C, usize)]
-    /// # enum Foo<'a, 'b> {
-    /// #     A(&'a i32),
-    /// #     B(&'b i32),
+    /// #[derive(EnumPtr, Debug, PartialEq, Eq)]
+    /// #[repr(C, usize)]
+    /// enum Foo {
+    ///     A(Box<i32>),
+    ///     B(Box<u32>),
+    /// }
+    ///
+    /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
+    /// foo.map_mut(|f| match f {
+    ///     Foo::A(r) => **r = 2,
+    ///     _ => unreachable!(),
+    /// });
+    /// assert_eq!(foo.extract(), Foo::A(Box::new(2)));
     /// # }
-    /// #
-    /// let mut foo: Compact<_> = Foo::A(&1).into();
-    /// foo.map_mut(|f: &mut Foo| println!("{f:?}"));
     /// ```
     #[inline]
     pub fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {

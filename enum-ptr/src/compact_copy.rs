@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-/// A `Copy` version of [`Compact`](crate::Compact).
+/// `Copy` version of [`Compact`](crate::Compact).
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct CompactCopy<T>
@@ -17,9 +17,9 @@ where
     T: From<CompactCopy<T>> + Copy,
     CompactCopy<T>: From<T>,
 {
-    /// Get the inner data.
+    /// Returns the underlying raw data.
     #[inline]
-    pub fn inner(&self) -> *const u8 {
+    pub fn as_raw_data(&self) -> *const u8 {
         self.data
     }
 
