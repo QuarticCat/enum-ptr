@@ -41,7 +41,7 @@
 //! - **Each variant of `Foo` must have enough alignment to store the tag.**
 //!
 //! Any violation of these rules will either trigger a compilation error or
-//! a run-time panic. Passed assertions will be optimized away. That is to say,
+//! a run-time panic. Passed assertions will be optimized out. That is to say,
 //! rule checks won't affect the run-time performance.
 //!
 //! [RFC]: https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md
