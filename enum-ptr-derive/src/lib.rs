@@ -10,7 +10,7 @@ fn error(span: impl Spanned, message: impl Display) -> TokenStream {
         .into()
 }
 
-fn enum_ptr_derive(input: TokenStream, is_copy: bool) -> TokenStream {
+fn gen_code(input: TokenStream, is_copy: bool) -> TokenStream {
     let DeriveInput {
         attrs,
         ident: enum_ident,
@@ -67,26 +67,15 @@ fn enum_ptr_derive(input: TokenStream, is_copy: bool) -> TokenStream {
         impl #impl_generics From<#original_type> for #compact_type #where_clause {
             #[inline]
             fn from(value: #original_type) -> Self {
-                use ::core::mem::{transmute, transmute_copy, ManuallyDrop};
-                use ::enum_ptr::PtrRepr;
-
                 #(#asserts)*
-
-                let PtrRepr(tag, ptr) = unsafe { transmute_copy(&ManuallyDrop::new(value)) };
-                unsafe { transmute(ptr.wrapping_add(tag)) }
+                unsafe { ::core::mem::transmute(::enum_ptr::compact(value)) }
             }
         }
 
         impl #impl_generics From<#compact_type> for #original_type #where_clause {
             #[inline]
             fn from(value: #compact_type) -> Self {
-                use ::core::mem::{transmute, transmute_copy};
-                use ::enum_ptr::PtrRepr;
-
-                let data: *const u8 = unsafe { transmute(value) };
-                let tag = data as usize & #tag_mask;
-                let ptr = data.wrapping_sub(tag);
-                unsafe { transmute_copy(&PtrRepr(tag, ptr)) }
+                unsafe { ::enum_ptr::extract(::core::mem::transmute(value), #tag_mask) }
             }
         }
     }
@@ -95,10 +84,10 @@ fn enum_ptr_derive(input: TokenStream, is_copy: bool) -> TokenStream {
 
 #[proc_macro_derive(EnumPtr)]
 pub fn enum_ptr(input: TokenStream) -> TokenStream {
-    enum_ptr_derive(input, false)
+    gen_code(input, false)
 }
 
 #[proc_macro_derive(EnumPtrCopy)]
 pub fn enum_ptr_copy(input: TokenStream) -> TokenStream {
-    enum_ptr_derive(input, true)
+    gen_code(input, true)
 }

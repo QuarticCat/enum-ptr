@@ -1,9 +1,5 @@
 use crate::Aligned;
 
-#[doc(hidden)]
-#[repr(C)]
-pub struct PtrRepr(pub usize, pub *const u8);
-
 /// Nothing but zeros. [`UNIT`] is its only instance.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Default, Hash)]
 #[repr(transparent)]
