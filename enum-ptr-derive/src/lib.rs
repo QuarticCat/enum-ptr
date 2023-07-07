@@ -9,6 +9,15 @@ use validate::*;
 use darling::{Error, FromDeriveInput};
 use proc_macro::TokenStream;
 
+#[proc_macro_derive(EnumPtr, attributes(enum_ptr))]
+pub fn enum_ptr(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as syn::DeriveInput);
+    match enum_ptr_inner(&input) {
+        Ok(output) => output,
+        Err(err) => err.write_errors().into(),
+    }
+}
+
 fn enum_ptr_inner(input: &syn::DeriveInput) -> Result<TokenStream, Error> {
     let input = Input::from_derive_input(input)?;
 
@@ -26,13 +35,4 @@ fn enum_ptr_inner(input: &syn::DeriveInput) -> Result<TokenStream, Error> {
     }
 
     Ok(output)
-}
-
-#[proc_macro_derive(EnumPtr, attributes(enum_ptr))]
-pub fn enum_ptr(input: TokenStream) -> TokenStream {
-    let input = syn::parse_macro_input!(input as syn::DeriveInput);
-    match enum_ptr_inner(&input) {
-        Ok(output) => output,
-        Err(err) => err.write_errors().into(),
-    }
 }

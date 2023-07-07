@@ -33,6 +33,6 @@ pub struct Field {
 
 #[derive(FromMeta, Default, Clone)]
 pub struct BorrowConf {
-    pub rename: Option<String>,
+    pub name: Option<String>,
     // pub vis: Option<String>,
 }

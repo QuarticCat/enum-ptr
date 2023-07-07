@@ -20,7 +20,7 @@ enum Bar<'a> {
 }
 
 #[derive(EnumPtr)]
-#[enum_ptr(borrow_mut(rename = "RefMutBaz"))]
+#[enum_ptr(borrow_mut(name = "RefMutBaz"))]
 #[repr(C, usize)]
 enum Baz<'a> {
     A(&'a mut i32),

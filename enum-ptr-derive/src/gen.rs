@@ -84,7 +84,7 @@ pub fn gen_borrow(input: &Input, conf: &BorrowConf) -> TokenStream {
         none => *none = parse_quote!(where #original_type: 'enum_ptr),
     }
     let (ref_impl_generics, ref_ty_generics, ref_where_clause) = ref_generics.split_for_impl();
-    let ref_ident = match &conf.rename {
+    let ref_ident = match &conf.name {
         Some(name) => format_ident!("{name}"),
         None => format_ident!("{input_ident}Ref"),
     };
@@ -153,7 +153,7 @@ pub fn gen_borrow_mut(input: &Input, conf: &BorrowConf) -> TokenStream {
         none => *none = parse_quote!(where #original_type: 'enum_ptr),
     }
     let (ref_impl_generics, ref_ty_generics, ref_where_clause) = ref_generics.split_for_impl();
-    let ref_ident = match &conf.rename {
+    let ref_ident = match &conf.name {
         Some(name) => format_ident!("{name}"),
         None => format_ident!("{input_ident}RefMut"),
     };

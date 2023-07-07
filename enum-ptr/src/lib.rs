@@ -7,7 +7,7 @@
 //! #[derive(EnumPtr)]
 //! #[repr(C, usize)] // required
 //! enum Foo<'a, T: Aligned> {
-//!     A(T),       // support any `T: Aligned`
+//!     A(T),       // supports any `T: Aligned`
 //!     B(&'a u64),
 //!     C(Unit),    // use `Unit` for unit variants
 //! #    #[cfg(feature = "alloc")]
@@ -72,4 +72,34 @@ pub use compact_copy::*;
 pub use convert::*;
 pub use utils::*;
 
-pub use enum_ptr_derive::*;
+/// Derives conversions to and from [`Compact`].
+///
+/// # Examples
+///
+/// ```
+/// # #[cfg(feature = "alloc")] {
+/// use enum_ptr::{EnumPtr, Unit};
+///
+/// #[derive(EnumPtr)]
+/// #[enum_ptr(
+///     // copy,    // derives conversions to and from `CompactCopy`
+///     borrow(     // derives a reference type and `impl CompactBorrow`
+///         name = "FooRef",
+///     ),
+///     borrow_mut( // derives a reference type and `impl CompactBorrowMut`
+///         name = "FooRefMut",
+///     ),
+/// )]
+/// #[repr(C, usize)]
+/// enum Foo {
+///     // unskipped fields must implement `FieldDeref` / `FieldDerefMut`
+///     A(Box<i64>),         // ref type: `&i64` / `&mut i64`
+///     B(Option<Box<i64>>), // ref type: `Option<&i64>` / `Option<&mut i64>`
+///
+///     // use `skip` to skip both, or use `skip_borrow` / `skip_borrow_mut`
+///     #[enum_ptr(skip)]
+///     C(Unit),             // ref type: `PhantomData` (skipped)
+/// }
+/// # }
+/// ```
+pub use enum_ptr_derive::EnumPtr;
