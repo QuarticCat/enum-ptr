@@ -1,8 +1,9 @@
 #![allow(dead_code)]
 
-use enum_ptr::EnumPtrCopy;
+use enum_ptr::EnumPtr;
 
-#[derive(EnumPtrCopy)]
+#[derive(EnumPtr)]
+#[enum_ptr(copy)]
 #[repr(C, usize)]
 enum Foo<'a, 'b> {
     A(&'a i32),

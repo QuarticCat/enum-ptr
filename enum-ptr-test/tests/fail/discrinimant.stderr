@@ -1,5 +1,5 @@
-error: EnumPtr doesn't support discriminants
- --> tests/fail/discrinimant.rs:9:5
+error: discrinimant is unsupported
+ --> tests/fail/discrinimant.rs:9:18
   |
 9 |     B(&'b i32) = 3,
-  |     ^
+  |                  ^
