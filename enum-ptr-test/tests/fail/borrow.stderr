@@ -1,0 +1,17 @@
+error[E0277]: the trait bound `Unit: FieldDeref` is not satisfied
+ --> tests/fail/borrow.rs:5:10
+  |
+5 | #[derive(EnumPtr)]
+  |          ^^^^^^^ the trait `FieldDeref` is not implemented for `Unit`
+  |
+  = help: the following other types implement trait `FieldDeref`:
+            &T
+            &mut T
+            Arc<T>
+            Box<T>
+            Option<&T>
+            Option<&mut T>
+            Option<Arc<T>>
+            Option<Box<T>>
+          and $N others
+  = note: this error originates in the derive macro `EnumPtr` (in Nightly builds, run with -Z macro-backtrace for more info)

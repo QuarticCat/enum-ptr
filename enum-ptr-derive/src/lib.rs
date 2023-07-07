@@ -18,6 +18,12 @@ fn enum_ptr_inner(input: &syn::DeriveInput) -> Result<TokenStream, Error> {
     if input.copy.is_present() {
         output.extend(gen_copy(&input));
     }
+    if let Some(conf) = input.borrow.clone() {
+        output.extend(gen_borrow(&input, &conf.unwrap_or_default()));
+    }
+    if let Some(conf) = input.borrow_mut.clone() {
+        output.extend(gen_borrow_mut(&input, &conf.unwrap_or_default()));
+    }
 
     Ok(output)
 }

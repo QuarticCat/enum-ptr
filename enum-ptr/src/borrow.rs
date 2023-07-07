@@ -1,3 +1,4 @@
+use core::mem::transmute;
 use core::ops::Deref;
 
 use crate::Compact;
@@ -30,6 +31,11 @@ pub unsafe trait FieldDeref {
         Self: 'a;
 
     fn deref(&self) -> Self::Target<'_>;
+
+    #[doc(hidden)]
+    unsafe fn force_deref<'a>(&self) -> Self::Target<'a> {
+        transmute(self.deref())
+    }
 }
 
 unsafe impl<T> FieldDeref for &T {

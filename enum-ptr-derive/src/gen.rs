@@ -1,8 +1,9 @@
 use darling::ast;
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
+use syn::parse_quote;
 
-use crate::Input;
+use crate::{BorrowConf, Input};
 
 pub fn gen_basic(input: &Input) -> TokenStream {
     let input_ident = &input.ident;
@@ -18,7 +19,7 @@ pub fn gen_basic(input: &Input) -> TokenStream {
         let variant_ident = &variant.ident;
         let field_type = &variant.fields.iter().next().unwrap().ty;
         let assert_msg = format!("`{input_ident}::{variant_ident}` has no enough alignment");
-        // TODO: change to static asserts when available (one problem is generic variables)
+        // TODO: change to static asserts when available
         asserts.push(quote! {
             assert!(
                 <#field_type as ::enum_ptr::Aligned>::ALIGNMENT >= #min_align,
@@ -64,6 +65,144 @@ pub fn gen_copy(input: &Input) -> TokenStream {
             #[inline]
             fn from(value: #compact_type) -> Self {
                 ::enum_ptr::Compact::from(value).into()
+            }
+        }
+    }
+    .into()
+}
+
+pub fn gen_borrow(input: &Input, conf: &BorrowConf) -> TokenStream {
+    let input_ident = &input.ident;
+    let input_vis = &input.vis;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let original_type = quote!(#input_ident #ty_generics);
+
+    let mut ref_generics = input.generics.clone();
+    ref_generics.params.insert(0, parse_quote!('enum_ptr));
+    match &mut ref_generics.where_clause {
+        Some(w) => w.predicates.push(parse_quote!(#original_type: 'enum_ptr)),
+        none => *none = parse_quote!(where #original_type: 'enum_ptr),
+    }
+    let (ref_impl_generics, ref_ty_generics, ref_where_clause) = ref_generics.split_for_impl();
+    let ref_ident = match &conf.rename {
+        Some(name) => format_ident!("{name}"),
+        None => format_ident!("{input_ident}Ref"),
+    };
+
+    let ast::Data::Enum(variants) = &input.data else { unreachable!() };
+    let mut ref_variants = Vec::new();
+    let mut match_arms = Vec::new();
+    for variant in variants {
+        let variant_ident = &variant.ident;
+        let field_type = &variant.fields.iter().next().unwrap().ty;
+        let skip = variant.skip.is_present() || variant.skip_borrow.is_present();
+        if !skip {
+            ref_variants.push(quote! {
+                #variant_ident(<#field_type as ::enum_ptr::FieldDeref>::Target<'enum_ptr>),
+            });
+            match_arms.push(quote! {
+                Self::#variant_ident(inner) => Self::Target::#variant_ident(
+                    ::enum_ptr::FieldDeref::force_deref(inner)
+                ),
+            });
+        } else {
+            ref_variants.push(quote! {
+                #variant_ident(::core::marker::PhantomData<*const #field_type>),
+            });
+            match_arms.push(quote! {
+                Self::#variant_ident(_) => Self::Target::#variant_ident(
+                    ::core::marker::PhantomData
+                ),
+            });
+        }
+    }
+
+    quote! {
+        #[repr(C, usize)]
+        #input_vis enum #ref_ident #ref_impl_generics #ref_where_clause {
+            #(#ref_variants)*
+        }
+
+        impl #impl_generics ::enum_ptr::CompactBorrow for #original_type #where_clause {
+            type Target<'enum_ptr> = #ref_ident #ref_ty_generics
+            where
+                Self: 'enum_ptr;
+
+            fn borrow(compact: &::enum_ptr::Compact<Self>) -> Self::Target<'_> {
+                unsafe {
+                    compact.map_ref(|f| match f {
+                        #(#match_arms)*
+                    })
+                }
+            }
+        }
+    }
+    .into()
+}
+
+pub fn gen_borrow_mut(input: &Input, conf: &BorrowConf) -> TokenStream {
+    let input_ident = &input.ident;
+    let input_vis = &input.vis;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let original_type = quote!(#input_ident #ty_generics);
+
+    let mut ref_generics = input.generics.clone();
+    ref_generics.params.insert(0, parse_quote!('enum_ptr));
+    match &mut ref_generics.where_clause {
+        Some(w) => w.predicates.push(parse_quote!(#original_type: 'enum_ptr)),
+        none => *none = parse_quote!(where #original_type: 'enum_ptr),
+    }
+    let (ref_impl_generics, ref_ty_generics, ref_where_clause) = ref_generics.split_for_impl();
+    let ref_ident = match &conf.rename {
+        Some(name) => format_ident!("{name}"),
+        None => format_ident!("{input_ident}RefMut"),
+    };
+
+    let ast::Data::Enum(variants) = &input.data else { unreachable!() };
+    let mut ref_variants = Vec::new();
+    let mut match_arms = Vec::new();
+    for variant in variants {
+        let variant_ident = &variant.ident;
+        let field_type = &variant.fields.iter().next().unwrap().ty;
+        let skip = variant.skip.is_present() || variant.skip_borrow_mut.is_present();
+        if !skip {
+            ref_variants.push(quote! {
+                #variant_ident(<#field_type as ::enum_ptr::FieldDerefMut>::Target<'enum_ptr>),
+            });
+            match_arms.push(quote! {
+                Self::#variant_ident(inner) => Self::Target::#variant_ident(
+                    ::enum_ptr::FieldDerefMut::force_deref_mut(inner)
+                ),
+            });
+        } else {
+            ref_variants.push(quote! {
+                #variant_ident(::core::marker::PhantomData<*const #field_type>),
+            });
+            match_arms.push(quote! {
+                Self::#variant_ident(_) => Self::Target::#variant_ident(
+                    ::core::marker::PhantomData
+                ),
+            });
+        }
+    }
+
+    quote! {
+        #[repr(C, usize)]
+        #input_vis enum #ref_ident #ref_impl_generics #ref_where_clause {
+            #(#ref_variants)*
+        }
+
+        impl #impl_generics ::enum_ptr::CompactBorrowMut for #original_type #where_clause {
+            type Target<'enum_ptr> = #ref_ident #ref_ty_generics
+            where
+                Self: 'enum_ptr;
+
+            fn borrow_mut(compact: &mut ::enum_ptr::Compact<Self>) -> Self::Target<'_> {
+                unsafe {
+                    compact.map_mut(|f| match f {
+                        #(#match_arms)*
+                    })
+                }
             }
         }
     }

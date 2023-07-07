@@ -1,5 +1,4 @@
 use enum_ptr::{Compact, EnumPtr};
-
 #[test]
 #[should_panic(expected = "`Foo::B` has no enough alignment")]
 fn alignment_assert() {

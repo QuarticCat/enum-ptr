@@ -1,3 +1,4 @@
+use core::mem::transmute;
 use core::ops::DerefMut;
 
 use crate::Compact;
@@ -30,6 +31,11 @@ pub unsafe trait FieldDerefMut {
         Self: 'a;
 
     fn deref_mut(&mut self) -> Self::Target<'_>;
+
+    #[doc(hidden)]
+    unsafe fn force_deref_mut<'a>(&mut self) -> Self::Target<'a> {
+        transmute(self.deref_mut())
+    }
 }
 
 unsafe impl<T> FieldDerefMut for &mut T {

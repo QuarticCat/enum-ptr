@@ -27,6 +27,10 @@ unsafe trait FieldDeref {
         Self: 'a;
 
     fn deref(&self) -> Self::Target<'_>;
+
+    unsafe fn force_deref<'a>(&self) -> Self::Target<'a> {
+        transmute(self.deref())
+    }
 }
 
 unsafe impl<T> FieldDeref for Box<T> {
@@ -86,8 +90,8 @@ fn simplest() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
-                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
+                    Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
             }
         }
@@ -129,8 +133,8 @@ fn with_option() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
-                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
+                    Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
             }
         }
@@ -175,8 +179,8 @@ fn with_lifetime() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
-                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
+                    Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
             }
         }
@@ -222,8 +226,8 @@ fn with_generic_type() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
-                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
+                    Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
             }
         }
