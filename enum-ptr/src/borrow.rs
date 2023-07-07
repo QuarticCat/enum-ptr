@@ -15,26 +15,60 @@ where
     fn borrow(compact: &Compact<Self>) -> Self::Target<'_>;
 }
 
-#[doc(hidden)]
-unsafe trait FieldDeref {
-    type Target;
+/// Types that can be used to derive [`CompactBorrow`].
+///
+/// It's like [`Deref`] but with flexible targets and strict constraints.
+///
+/// # Safety
+///
+/// `T` must not `deref` to something that points to its own memory.
+///
+/// A counter-example is `ManuallyDrop<T>`, which will `deref` to `&T`.
+pub unsafe trait FieldDeref {
+    type Target<'a>
+    where
+        Self: 'a;
 
-    unsafe fn deref<'a>(&self) -> &'a Self::Target;
+    fn deref(&self) -> Self::Target<'_>;
 }
 
 unsafe impl<T> FieldDeref for &T {
-    type Target = T;
+    type Target<'a> = &'a T
+    where
+        Self: 'a;
 
-    unsafe fn deref<'a>(&self) -> &'a Self::Target {
-        &*(Deref::deref(self) as *const _)
+    fn deref(&self) -> Self::Target<'_> {
+        Deref::deref(self)
     }
 }
 
 unsafe impl<T> FieldDeref for &mut T {
-    type Target = T;
+    type Target<'a> = &'a T
+    where
+        Self: 'a;
 
-    unsafe fn deref<'a>(&self) -> &'a Self::Target {
-        &*(Deref::deref(self) as *const _)
+    fn deref(&self) -> Self::Target<'_> {
+        Deref::deref(self)
+    }
+}
+
+unsafe impl<T> FieldDeref for Option<&T> {
+    type Target<'a> = Option<&'a T>
+    where
+        Self: 'a;
+
+    fn deref(&self) -> Self::Target<'_> {
+        self.as_deref()
+    }
+}
+
+unsafe impl<T> FieldDeref for Option<&mut T> {
+    type Target<'a> = Option<&'a T>
+    where
+        Self: 'a;
+
+    fn deref(&self) -> Self::Target<'_> {
+        self.as_deref()
     }
 }
 
@@ -47,26 +81,62 @@ mod alloc_impl {
     use alloc::sync::Arc;
 
     unsafe impl<T> FieldDeref for Box<T> {
-        type Target = T;
+        type Target<'a> = &'a T
+        where
+            Self: 'a;
 
-        unsafe fn deref<'a>(&self) -> &'a Self::Target {
-            &*(Deref::deref(self) as *const _)
+        fn deref(&self) -> Self::Target<'_> {
+            Deref::deref(self)
         }
     }
 
     unsafe impl<T> FieldDeref for Rc<T> {
-        type Target = T;
+        type Target<'a> = &'a T
+        where
+            Self: 'a;
 
-        unsafe fn deref<'a>(&self) -> &'a Self::Target {
-            &*(Deref::deref(self) as *const _)
+        fn deref(&self) -> Self::Target<'_> {
+            Deref::deref(self)
         }
     }
 
     unsafe impl<T> FieldDeref for Arc<T> {
-        type Target = T;
+        type Target<'a> = &'a T
+        where
+            Self: 'a;
 
-        unsafe fn deref<'a>(&self) -> &'a Self::Target {
-            &*(Deref::deref(self) as *const _)
+        fn deref(&self) -> Self::Target<'_> {
+            Deref::deref(self)
+        }
+    }
+
+    unsafe impl<T> FieldDeref for Option<Box<T>> {
+        type Target<'a> = Option<&'a T>
+        where
+            Self: 'a;
+
+        fn deref(&self) -> Self::Target<'_> {
+            self.as_deref()
+        }
+    }
+
+    unsafe impl<T> FieldDeref for Option<Rc<T>> {
+        type Target<'a> = Option<&'a T>
+        where
+            Self: 'a;
+
+        fn deref(&self) -> Self::Target<'_> {
+            self.as_deref()
+        }
+    }
+
+    unsafe impl<T> FieldDeref for Option<Arc<T>> {
+        type Target<'a> = Option<&'a T>
+        where
+            Self: 'a;
+
+        fn deref(&self) -> Self::Target<'_> {
+            self.as_deref()
         }
     }
 }

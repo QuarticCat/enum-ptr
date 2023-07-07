@@ -15,18 +15,40 @@ where
     fn borrow_mut(compact: &mut Compact<Self>) -> Self::Target<'_>;
 }
 
-#[doc(hidden)]
-unsafe trait FieldDerefMut {
-    type Target;
+/// Types that can be used to derive [`CompactBorrowMut`].
+///
+/// It's like [`DerefMut`] but with flexible targets and strict constraints.
+///
+/// # Safety
+///
+/// `T` must not `deref_mut` to something that points to its own memory.
+///
+/// A counter-example is `ManuallyDrop<T>`, which will `deref_mut` to `&mut T`.
+pub unsafe trait FieldDerefMut {
+    type Target<'a>
+    where
+        Self: 'a;
 
-    unsafe fn deref_mut<'a>(&mut self) -> &'a mut Self::Target;
+    fn deref_mut(&mut self) -> Self::Target<'_>;
 }
 
 unsafe impl<T> FieldDerefMut for &mut T {
-    type Target = T;
+    type Target<'a> = &'a mut T
+    where
+        Self: 'a;
 
-    unsafe fn deref_mut<'a>(&mut self) -> &'a mut Self::Target {
-        &mut *(DerefMut::deref_mut(self) as *mut _)
+    fn deref_mut(&mut self) -> Self::Target<'_> {
+        DerefMut::deref_mut(self)
+    }
+}
+
+unsafe impl<T> FieldDerefMut for Option<&mut T> {
+    type Target<'a> = Option<&'a mut T>
+    where
+        Self: 'a;
+
+    fn deref_mut(&mut self) -> Self::Target<'_> {
+        self.as_deref_mut()
     }
 }
 
@@ -37,10 +59,22 @@ mod alloc_impl {
     use alloc::boxed::Box;
 
     unsafe impl<T> FieldDerefMut for Box<T> {
-        type Target = T;
+        type Target<'a> = &'a mut T
+        where
+            Self: 'a;
 
-        unsafe fn deref_mut<'a>(&mut self) -> &'a mut Self::Target {
-            &mut *(DerefMut::deref_mut(self) as *mut _)
+        fn deref_mut(&mut self) -> Self::Target<'_> {
+            DerefMut::deref_mut(self)
+        }
+    }
+
+    unsafe impl<T> FieldDerefMut for Option<Box<T>> {
+        type Target<'a> = Option<&'a mut T>
+        where
+            Self: 'a;
+
+        fn deref_mut(&mut self) -> Self::Target<'_> {
+            self.as_deref_mut()
         }
     }
 }

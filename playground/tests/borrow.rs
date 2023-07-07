@@ -1,8 +1,7 @@
-//! Problem: cannot support non-ptr types like `Option<&T>`
-
 #![cfg(feature = "alloc")]
-#![allow(dead_code, clippy::missing_safety_doc)]
+#![allow(dead_code)]
 
+use core::mem::transmute;
 use core::ops::Deref;
 
 use enum_ptr::*;
@@ -21,33 +20,49 @@ where
     fn borrow(compact: &Compact<Self>) -> Self::Target<'_>;
 }
 
+#[doc(hidden)]
 unsafe trait FieldDeref {
-    type Target;
+    type Target<'a>
+    where
+        Self: 'a;
 
-    unsafe fn deref<'a>(&self) -> &'a Self::Target;
+    fn deref(&self) -> Self::Target<'_>;
 }
 
 unsafe impl<T> FieldDeref for Box<T> {
-    type Target = T;
+    type Target<'a> = &'a T
+    where
+        Self: 'a;
 
-    unsafe fn deref<'a>(&self) -> &'a Self::Target {
-        &*(Deref::deref(self) as *const _)
+    fn deref(&self) -> Self::Target<'_> {
+        Deref::deref(self)
+    }
+}
+
+unsafe impl<T> FieldDeref for Option<Box<T>> {
+    type Target<'a> = Option<&'a T>
+    where
+        Self: 'a;
+
+    fn deref(&self) -> Self::Target<'_> {
+        self.as_deref()
     }
 }
 
 unsafe impl<T> FieldDeref for &T {
-    type Target = T;
+    type Target<'a> = &'a T
+    where
+        Self: 'a;
 
-    unsafe fn deref<'a>(&self) -> &'a Self::Target {
-        &*(Deref::deref(self) as *const _)
+    fn deref(&self) -> Self::Target<'_> {
+        Deref::deref(self)
     }
 }
 
 /* ----- user code ----- */
 
-// simplest
 #[test]
-fn case1() {
+fn simplest() {
     #[derive(EnumPtr, Debug)]
     #[repr(C, usize)]
     enum Foo {
@@ -59,8 +74,8 @@ fn case1() {
 
     #[repr(C, usize)]
     enum FooRef<'enum_ptr> {
-        A(&'enum_ptr <Box<i32> as FieldDeref>::Target),
-        B(&'enum_ptr <Box<u32> as FieldDeref>::Target),
+        A(<Box<i32> as FieldDeref>::Target<'enum_ptr>),
+        B(<Box<u32> as FieldDeref>::Target<'enum_ptr>),
     }
 
     impl CompactBorrow for Foo {
@@ -71,8 +86,8 @@ fn case1() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(FieldDeref::deref(inner)),
-                    Self::B(inner) => Self::Target::B(FieldDeref::deref(inner)),
+                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
+                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
                 })
             }
         }
@@ -83,15 +98,57 @@ fn case1() {
     let compact_foo: Compact<_> = Foo::A(Box::new(0)).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
-        FooRef::A(inner) => *inner as i64 + 1,
-        FooRef::B(inner) => *inner as i64 + 2,
+        FooRef::A(inner) => *inner,
+        _ => unreachable!(),
     };
-    assert_eq!(value, 1);
+    assert_eq!(value, 0);
 }
 
-// with lifetime variables
 #[test]
-fn case2() {
+fn with_option() {
+    #[derive(EnumPtr, Debug)]
+    #[repr(C, usize)]
+    enum Foo {
+        A(Option<Box<i32>>),
+        B(Option<Box<u32>>),
+    }
+
+    /* ----- derived code begin ----- */
+
+    #[repr(C, usize)]
+    enum FooRef<'enum_ptr> {
+        A(<Option<Box<i32>> as FieldDeref>::Target<'enum_ptr>),
+        B(<Option<Box<u32>> as FieldDeref>::Target<'enum_ptr>),
+    }
+
+    impl CompactBorrow for Foo {
+        type Target<'enum_ptr> = FooRef<'enum_ptr>
+        where
+            Self: 'enum_ptr;
+
+        fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
+            unsafe {
+                compact.map_ref(|f| match f {
+                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
+                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
+                })
+            }
+        }
+    }
+
+    /* ----- derived code end ----- */
+
+    let compact_foo: Compact<_> = Foo::A(Some(Box::new(0))).into();
+    let foo_ref = CompactBorrow::borrow(&compact_foo);
+    let value = match foo_ref {
+        FooRef::A(Some(inner)) => *inner,
+        _ => unreachable!(),
+    };
+    assert_eq!(value, 0);
+}
+
+#[test]
+fn with_lifetime() {
     #[derive(EnumPtr, Debug)]
     #[repr(C, usize)]
     enum Foo<'a, 'b> {
@@ -102,9 +159,12 @@ fn case2() {
     /* ----- derived code begin ----- */
 
     #[repr(C, usize)]
-    enum FooRef<'enum_ptr, 'a, 'b> {
-        A(&'enum_ptr <&'a i32 as FieldDeref>::Target),
-        B(&'enum_ptr <&'b u32 as FieldDeref>::Target),
+    enum FooRef<'enum_ptr, 'a, 'b>
+    where
+        Foo<'a, 'b>: 'enum_ptr,
+    {
+        A(<&'a i32 as FieldDeref>::Target<'enum_ptr>),
+        B(<&'b u32 as FieldDeref>::Target<'enum_ptr>),
     }
 
     impl<'a, 'b> CompactBorrow for Foo<'a, 'b> {
@@ -115,8 +175,8 @@ fn case2() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(FieldDeref::deref(inner)),
-                    Self::B(inner) => Self::Target::B(FieldDeref::deref(inner)),
+                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
+                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
                 })
             }
         }
@@ -128,15 +188,14 @@ fn case2() {
     let compact_foo: Compact<_> = Foo::A(&num).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
-        FooRef::A(inner) => *inner as i64 + 1,
-        FooRef::B(inner) => *inner as i64 + 2,
+        FooRef::A(inner) => *inner,
+        _ => unreachable!(),
     };
-    assert_eq!(value, 1);
+    assert_eq!(value, 0);
 }
 
-// with type variables
 #[test]
-fn case3() {
+fn with_generic_type() {
     #[derive(EnumPtr, Debug)]
     #[repr(C, usize)]
     enum Foo<'a, T, U: Aligned + FieldDeref> {
@@ -147,9 +206,12 @@ fn case3() {
     /* ----- derived code begin ----- */
 
     #[repr(C, usize)]
-    enum FooRef<'enum_ptr, 'a, T, U: Aligned + FieldDeref> {
-        A(&'enum_ptr <&'a T as FieldDeref>::Target),
-        B(&'enum_ptr <U as FieldDeref>::Target),
+    enum FooRef<'enum_ptr, 'a, T, U: Aligned + FieldDeref>
+    where
+        Foo<'a, T, U>: 'enum_ptr,
+    {
+        A(<&'a T as FieldDeref>::Target<'enum_ptr>),
+        B(<U as FieldDeref>::Target<'enum_ptr>),
     }
 
     impl<'a, T, U: Aligned + FieldDeref> CompactBorrow for Foo<'a, T, U> {
@@ -160,8 +222,8 @@ fn case3() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(FieldDeref::deref(inner)),
-                    Self::B(inner) => Self::Target::B(FieldDeref::deref(inner)),
+                    Self::A(inner) => Self::Target::A(transmute(FieldDeref::deref(inner))),
+                    Self::B(inner) => Self::Target::B(transmute(FieldDeref::deref(inner))),
                 })
             }
         }
@@ -173,8 +235,8 @@ fn case3() {
     let compact_foo: Compact<_> = Foo::<i32, &u32>::A(&num).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
-        FooRef::A(inner) => *inner as i64 + 1,
-        FooRef::B(inner) => *inner as i64 + 2,
+        FooRef::A(inner) => *inner,
+        _ => unreachable!(),
     };
-    assert_eq!(value, 1);
+    assert_eq!(value, 0);
 }
