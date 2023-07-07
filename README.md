@@ -14,7 +14,7 @@ use enum_ptr::EnumPtr;
 #[repr(C, usize)]
 enum Foo<'a> {
     A(&'a i32),
-    B(Option<Box<i32>>),
+    B(Box<i32>),
 }
 ```
 

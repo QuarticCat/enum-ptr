@@ -1,3 +1,5 @@
+//! Problem: cannot support non-ptr types like `Option<&T>`
+
 #![cfg(feature = "alloc")]
 #![allow(dead_code, clippy::missing_safety_doc)]
 
@@ -22,22 +24,22 @@ where
 unsafe trait FieldDeref {
     type Target;
 
-    fn deref(&self) -> &Self::Target;
+    unsafe fn deref<'a>(&self) -> &'a Self::Target;
 }
 
 unsafe impl<T> FieldDeref for Box<T> {
     type Target = T;
 
-    fn deref(&self) -> &Self::Target {
-        Deref::deref(self)
+    unsafe fn deref<'a>(&self) -> &'a Self::Target {
+        &*(Deref::deref(self) as *const _)
     }
 }
 
 unsafe impl<T> FieldDeref for &T {
     type Target = T;
 
-    fn deref(&self) -> &Self::Target {
-        Deref::deref(self)
+    unsafe fn deref<'a>(&self) -> &'a Self::Target {
+        &*(Deref::deref(self) as *const _)
     }
 }
 
@@ -69,8 +71,8 @@ fn case1() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(&*(FieldDeref::deref(inner) as *const _)),
-                    Self::B(inner) => Self::Target::B(&*(FieldDeref::deref(inner) as *const _)),
+                    Self::A(inner) => Self::Target::A(FieldDeref::deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::deref(inner)),
                 })
             }
         }
@@ -113,8 +115,8 @@ fn case2() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(&*(FieldDeref::deref(inner) as *const _)),
-                    Self::B(inner) => Self::Target::B(&*(FieldDeref::deref(inner) as *const _)),
+                    Self::A(inner) => Self::Target::A(FieldDeref::deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::deref(inner)),
                 })
             }
         }
@@ -158,8 +160,8 @@ fn case3() {
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
                 compact.map_ref(|f| match f {
-                    Self::A(inner) => Self::Target::A(&*(FieldDeref::deref(inner) as *const _)),
-                    Self::B(inner) => Self::Target::B(&*(FieldDeref::deref(inner) as *const _)),
+                    Self::A(inner) => Self::Target::A(FieldDeref::deref(inner)),
+                    Self::B(inner) => Self::Target::B(FieldDeref::deref(inner)),
                 })
             }
         }

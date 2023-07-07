@@ -33,19 +33,19 @@ pub unsafe trait Aligned {
     const ALIGNMENT: usize;
 }
 
-unsafe impl<'a, T> Aligned for &'a T {
+unsafe impl<T> Aligned for &T {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
-unsafe impl<'a, T> Aligned for &'a mut T {
+unsafe impl<T> Aligned for &mut T {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
-unsafe impl<'a, T> Aligned for Option<&'a T> {
+unsafe impl<T> Aligned for Option<&T> {
     const ALIGNMENT: usize = align_of::<T>();
 }
 
-unsafe impl<'a, T> Aligned for Option<&'a mut T> {
+unsafe impl<T> Aligned for Option<&mut T> {
     const ALIGNMENT: usize = align_of::<T>();
 }
 

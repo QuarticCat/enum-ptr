@@ -1,6 +1,8 @@
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 
+use crate::{CompactBorrow, CompactBorrowMut};
+
 /// Compact representation of `T`. Only one-pointer wide.
 ///
 /// It behaves like `T` for `Drop`, `Clone`, `Hash`, `Eq`, `Ord`, ...
@@ -130,6 +132,26 @@ where
     //     self.data = unsafe { crate::compact(new) };
     //     old
     // }
+}
+
+impl<T> Compact<T>
+where
+    T: From<Compact<T>> + CompactBorrow,
+    Compact<T>: From<T>,
+{
+    pub fn borrow(&self) -> <T as CompactBorrow>::Target<'_> {
+        CompactBorrow::borrow(self)
+    }
+}
+
+impl<T> Compact<T>
+where
+    T: From<Compact<T>> + CompactBorrowMut,
+    Compact<T>: From<T>,
+{
+    pub fn borrow_mut(&mut self) -> <T as CompactBorrowMut>::Target<'_> {
+        CompactBorrowMut::borrow_mut(self)
+    }
 }
 
 impl<T> Drop for Compact<T>

@@ -11,7 +11,7 @@
 //!     B(&'a u64),
 //!     C(Unit),    // use `Unit` for unit variants
 //! #    #[cfg(feature = "alloc")]
-//!     D(Option<Box<i64>>),
+//!     D(Box<i64>),
 //! }
 //!
 //! let compact_foo: Compact<_> = Foo::A(&0i32).into();
@@ -22,7 +22,7 @@
 //! # test(Foo::B(&1));
 //! # test(Foo::C(Unit::new()));
 //! # #[cfg(feature = "alloc")]
-//! # test(Foo::D(Some(Box::new(2))));
+//! # test(Foo::D(Box::new(2)));
 //! ```
 //!
 //! You can implement [`Aligned`] for your own types.
@@ -57,12 +57,16 @@
 extern crate alloc;
 
 mod aligned;
+mod borrow;
+mod borrow_mut;
 mod compact;
 mod compact_copy;
 mod convert;
 mod utils;
 
 pub use aligned::*;
+pub use borrow::*;
+pub use borrow_mut::*;
 pub use compact::*;
 pub use compact_copy::*;
 pub use convert::*;
