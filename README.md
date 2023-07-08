@@ -3,7 +3,9 @@
 [![crates.io](https://img.shields.io/crates/v/enum-ptr)](https://crates.io/crates/enum-ptr)
 [![docs.rs](https://img.shields.io/badge/docs.rs-enum--ptr-latest)](https://docs.rs/enum-ptr)
 
-This crate provides a custom derive macro `EnumPtr` to automatically generate bridges between `T` and `Compact<T>` with the minimum cost. `Compact<T>` is the compact representation of `T`, and it is only one pointer wide.
+*[0.2.0 beta](https://crates.io/crates/enum-ptr/0.2.0-beta.0) is released with a lot of new features. I need feedback from community.*
+
+This crate provides a custom derive macro `EnumPtr` to generate bridges between an enum `T` and `Compact<T>` with minimum cost. `Compact<T>` is the compact representation of `T`, and it is only one pointer wide.
 
 For example, the following code
 

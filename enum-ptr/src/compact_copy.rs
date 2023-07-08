@@ -1,24 +1,6 @@
 use core::marker::PhantomData;
 
 /// [`Copy`] version of [`Compact`](crate::Compact).
-///
-/// # Examples
-///
-/// ```
-/// use enum_ptr::{CompactCopy, EnumPtr};
-///
-/// #[derive(EnumPtr, Debug, Clone, Copy, PartialEq, Eq)]
-/// #[enum_ptr(copy)] // required
-/// #[repr(C, usize)]
-/// enum Foo<'a, 'b> {
-///     A(&'a i32),
-///     B(&'b u32),
-/// }
-///
-/// let foo: CompactCopy<_> = Foo::A(&1).into();
-/// assert_eq!(foo.extract(), Foo::A(&1));
-/// assert_ne!(foo.extract(), Foo::B(&2));
-/// ```
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct CompactCopy<T>

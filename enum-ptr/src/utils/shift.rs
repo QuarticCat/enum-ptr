@@ -55,3 +55,5 @@ impl<const N: usize> ShiftUsize<N> {
 unsafe impl<const N: usize> Aligned for ShiftUsize<N> {
     const ALIGNMENT: usize = 1 << N;
 }
+
+// TODO: impl more traits for these two types, like `From<usize>`
