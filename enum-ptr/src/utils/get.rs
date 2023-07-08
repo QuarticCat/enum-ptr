@@ -45,6 +45,7 @@ where
 ///
 /// let foo: Compact<_> = Foo::A(Box::new(1)).into();
 /// assert_eq!(get_ref!(&foo, Foo::A), Some(&1));
+/// assert_eq!(get_ref!(&foo, Foo::B), None);
 /// # }
 /// ```
 #[macro_export]
@@ -76,6 +77,7 @@ macro_rules! get_ref {
 ///
 /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
 /// assert_eq!(get_mut!(&mut foo, Foo::A), Some(&mut 1));
+/// assert_eq!(get_mut!(&mut foo, Foo::B), None);
 /// # }
 /// ```
 #[macro_export]

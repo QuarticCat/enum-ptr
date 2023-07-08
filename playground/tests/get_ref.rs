@@ -43,8 +43,4 @@ fn simplest() {
     /* ----- macro code end ----- */
 
     assert_eq!(result, Some(&1));
-
-    // uncomment to check lifetime correctness
-    // drop(foo);
-    // dbg!(result);
 }

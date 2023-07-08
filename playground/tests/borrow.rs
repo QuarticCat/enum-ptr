@@ -1,5 +1,5 @@
 #![cfg(feature = "alloc")]
-#![allow(dead_code)]
+#![allow(dead_code, clippy::disallowed_names)]
 
 use core::mem::transmute;
 use core::ops::Deref;
@@ -99,8 +99,8 @@ fn simplest() {
 
     /* ----- derived code end ----- */
 
-    let compact_foo: Compact<_> = Foo::A(Box::new(1)).into();
-    let foo_ref = CompactBorrow::borrow(&compact_foo);
+    let foo: Compact<_> = Foo::A(Box::new(1)).into();
+    let foo_ref = CompactBorrow::borrow(&foo);
     let value = match foo_ref {
         FooRef::A(inner) => *inner,
         _ => unreachable!(),
@@ -142,8 +142,8 @@ fn with_option() {
 
     /* ----- derived code end ----- */
 
-    let compact_foo: Compact<_> = Foo::A(Some(Box::new(1))).into();
-    let foo_ref = CompactBorrow::borrow(&compact_foo);
+    let foo: Compact<_> = Foo::A(Some(Box::new(1))).into();
+    let foo_ref = CompactBorrow::borrow(&foo);
     let value = match foo_ref {
         FooRef::A(Some(inner)) => *inner,
         _ => unreachable!(),
@@ -189,8 +189,8 @@ fn with_lifetime() {
     /* ----- derived code end ----- */
 
     let num = 1;
-    let compact_foo: Compact<_> = Foo::A(&num).into();
-    let foo_ref = CompactBorrow::borrow(&compact_foo);
+    let foo: Compact<_> = Foo::A(&num).into();
+    let foo_ref = CompactBorrow::borrow(&foo);
     let value = match foo_ref {
         FooRef::A(inner) => *inner,
         _ => unreachable!(),
@@ -218,7 +218,7 @@ fn with_generic_type() {
         B(<U as FieldDeref>::Target<'enum_ptr>),
     }
 
-    impl<'a, T, U: Aligned + FieldDeref> CompactBorrow for Foo<'a, T, U> {
+    impl<'a, T, U: Aligned + FieldDeref + core::fmt::Debug> CompactBorrow for Foo<'a, T, U> {
         type Target<'enum_ptr> = FooRef<'enum_ptr, 'a, T, U>
         where
             Self: 'enum_ptr;
@@ -236,8 +236,8 @@ fn with_generic_type() {
     /* ----- derived code end ----- */
 
     let num = 1;
-    let compact_foo: Compact<_> = Foo::<i32, &u32>::A(&num).into();
-    let foo_ref = CompactBorrow::borrow(&compact_foo);
+    let foo: Compact<_> = Foo::<i32, &u32>::A(&num).into();
+    let foo_ref = CompactBorrow::borrow(&foo);
     let value = match foo_ref {
         FooRef::A(inner) => *inner,
         _ => unreachable!(),
