@@ -91,7 +91,7 @@
 //!
 //! # Features
 //!
-//! - `alloc` *(default)* --- `Box`, `Rc`, and `Arc` support
+//! - `alloc` *(default)* --- `Box`, `Rc` and `Arc` support
 
 #![no_std]
 
@@ -122,10 +122,12 @@ pub use utils::*;
 /// #[enum_ptr(
 ///     // copy,    // derives conversions to and from `CompactCopy`
 ///     borrow(     // derives a reference type and `impl CompactBorrow`
-///         name = "FooRef",
+///         name = "FooRef",     // default: ident + "Ref"
+///         derive(Clone, Copy), // default: none
 ///     ),
 ///     borrow_mut( // derives a reference type and `impl CompactBorrowMut`
-///         name = "FooRefMut",
+///         name = "FooRefMut",  // default: ident + "RefMut"
+///         derive(Debug),       // default: none
 ///     ),
 /// )]
 /// #[repr(C, usize)]

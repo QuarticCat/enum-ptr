@@ -34,4 +34,5 @@ pub struct Field {
 #[derive(FromMeta, Default, Clone)]
 pub struct BorrowConf {
     pub name: Option<String>,
+    pub derive: Option<syn::Meta>,
 }

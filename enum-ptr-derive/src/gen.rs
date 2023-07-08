@@ -88,6 +88,7 @@ pub fn gen_borrow(input: &Input, conf: &BorrowConf) -> TokenStream {
         Some(name) => format_ident!("{name}"),
         None => format_ident!("{input_ident}Ref"),
     };
+    let ref_derive = conf.derive.as_ref().map(|d| quote!(#[#d]));
 
     let ast::Data::Enum(variants) = &input.data else { unreachable!() };
     let mut ref_variants = Vec::new();
@@ -118,6 +119,7 @@ pub fn gen_borrow(input: &Input, conf: &BorrowConf) -> TokenStream {
     }
 
     quote! {
+        #ref_derive
         #[repr(C, usize)]
         #input_vis enum #ref_ident #ref_impl_generics #ref_where_clause {
             #(#ref_variants)*
@@ -158,6 +160,7 @@ pub fn gen_borrow_mut(input: &Input, conf: &BorrowConf) -> TokenStream {
         Some(name) => format_ident!("{name}"),
         None => format_ident!("{input_ident}RefMut"),
     };
+    let ref_derive = conf.derive.as_ref().map(|d| quote!(#[#d]));
 
     let ast::Data::Enum(variants) = &input.data else { unreachable!() };
     let mut ref_variants = Vec::new();
@@ -188,6 +191,7 @@ pub fn gen_borrow_mut(input: &Input, conf: &BorrowConf) -> TokenStream {
     }
 
     quote! {
+        #ref_derive
         #[repr(C, usize)]
         #input_vis enum #ref_ident #ref_impl_generics #ref_where_clause {
             #(#ref_variants)*
