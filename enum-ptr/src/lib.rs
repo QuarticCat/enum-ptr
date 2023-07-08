@@ -1,31 +1,72 @@
-//! # Basic Usage
+//! # Examples
 //!
 //! ```
-//! use enum_ptr::{Aligned, Compact, EnumPtr, Unit};
+//! use enum_ptr::{Aligned, Compact, EnumPtr, ShiftUsize, Unit};
 //!
 //! # #[derive(Debug, PartialEq, Eq, Clone)]
 //! #[derive(EnumPtr)]
 //! #[repr(C, usize)] // required
 //! enum Foo<'a, T: Aligned> {
-//!     A(T),       // supports any `T: Aligned`
+//!     A(T),             // supports any `T: Aligned`
 //!     B(&'a u64),
-//!     C(Unit),    // use `Unit` for unit variants
+//!     C(Unit),          // use `Unit` for unit variants
+//!     D(ShiftUsize<3>), // you can even use non-pointers
 //! #    #[cfg(feature = "alloc")]
-//!     D(Box<i64>),
+//!     E(Box<i64>),
 //! }
 //!
-//! let compact_foo: Compact<_> = Foo::A(&0i32).into();
+//! let compact_foo: Compact<_> = Foo::A(&1u64).into();
 //! let original_foo: Foo<_> = compact_foo.into();
 //! #
-//! # let test = |f: Foo<&i32>| assert_eq!(f.clone(), Foo::from(Compact::from(f)));
+//! # let test = |f: Foo<&u64>| assert_eq!(f.clone(), Foo::from(Compact::from(f)));
 //! # test(Foo::A(&0));
 //! # test(Foo::B(&1));
 //! # test(Foo::C(Unit::new()));
+//! # test(Foo::D(ShiftUsize::new(2)));
 //! # #[cfg(feature = "alloc")]
-//! # test(Foo::D(Box::new(2)));
+//! # test(Foo::E(Box::new(3)));
 //! ```
 //!
-//! You can implement [`Aligned`] for your own types.
+//! # Usage
+//!
+//! This crate provides multiple APIs with different flavors.
+//!
+//! ## Flavor 1: `CompactCopy`
+//!
+//! If your enum type is [`Copy`] (e.g., consists of only `&T`s), you can
+//! convert it to [`CompactCopy`]. Each time you need to use it, just copy
+//! and [`extract`](CompactCopy::extract) it. Easy-peasy!
+//!
+//! Sadly, due to language limitations, we cannot combine [`Compact`] and
+//! [`CompactCopy`] into one type.
+//!
+//! ## Flavor 2: `get_ref` & `get_mut`
+//!
+//! If your enum type is not [`Copy`], and you happens to only have references
+//! to the compact value, you can use [`get_ref`] and [`get_mut`] to get
+//! references to **the object that it points to**.
+//!
+//! For example, if you hold a compact `Box<T>`, you can use these APIs to
+//! access `&T` and `&mut T`. Since there's no `Box<T>` in the memory (but only
+//! its compact form), we cannot create `&Box<T>` and `&mut Box<T>`. Check
+//! [`FieldDeref`] and [`FieldDerefMut`] for more details.
+//!
+//! ## Flavor 3: `borrow` & `borrow_mut`
+//!
+//! [`get_ref`] and [`get_mut`] can be troublesome if you want to deal with
+//! multiple variants at together. In that case, you can use
+//! [`borrow`](Compact::borrow) and [`borrow_mut`](Compact::borrow_mut). They
+//! will return derived reference types that you can `match`.
+//!
+//! ## Flavor 4: `map_ref` & `map_mut` *(legacy)*
+//!
+//! [`map_ref`](Compact::map_ref) and [`map_mut`](Compact::map_mut) will create
+//! temporary objects that drop as soon as your closure ends. They can
+//! sometimes be useful if you don't want to derive reference objects.
+//!
+//! ## Extension
+//!
+//! All important traits are public. You can implement them for your own types.
 //!
 //! # Limitations
 //!
@@ -89,7 +130,8 @@ pub use utils::*;
 /// )]
 /// #[repr(C, usize)]
 /// enum Foo {
-///     // unskipped fields must implement `FieldDeref` / `FieldDerefMut`
+///     // `borrow` / `borrow_mut` requires all unskipped fields
+///     // to implement `FieldDeref` / `FieldDerefMut`
 ///     A(Box<i64>),         // ref type: `&i64` / `&mut i64`
 ///     B(Option<Box<i64>>), // ref type: `Option<&i64>` / `Option<&mut i64>`
 ///

@@ -11,14 +11,14 @@ enum Foo<'a, 'b> {
 
 fn test_get_ref() {
     let foo: Compact<_> = Foo::A(None).into();
-    let foo_ref = get_ref!(&foo, Foo::A);
+    let foo_ref = get_ref!(foo, Foo::A);
     drop(foo);
     drop(foo_ref);
 }
 
 fn test_get_mut() {
     let mut foo: Compact<_> = Foo::A(None).into();
-    let foo_mut = get_mut!(&mut foo, Foo::A);
+    let foo_mut = get_mut!(foo, Foo::A);
     drop(foo);
     drop(foo_mut);
 }

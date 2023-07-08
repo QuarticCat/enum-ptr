@@ -35,7 +35,7 @@ Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them ar
 ## Features
 
 - No need to write unsafe pointer operations
-- Supports various pointer types and can be extended
+- Supports various types and can be extended
 - Supports `no_std`
 - Minimum type conversion cost
 - Passes `cargo +nightly miri test` with strict provenance enabled.

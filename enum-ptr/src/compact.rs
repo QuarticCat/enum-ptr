@@ -139,6 +139,31 @@ where
     T: From<Compact<T>> + CompactBorrow,
     Compact<T>: From<T>,
 {
+    /// Returns a reference type that acts like `&T`.
+    ///
+    /// Check [`EnumPtr`](crate::EnumPtr) for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "alloc")] {
+    /// use enum_ptr::{Compact, EnumPtr};
+    ///
+    /// #[derive(EnumPtr, Debug)]
+    /// #[enum_ptr(borrow)] // required
+    /// #[repr(C, usize)]
+    /// enum Foo {               // enum FooRef<'enum_ptr> {
+    ///     A(Box<i32>),         //     A(&'enum_ptr i32),
+    ///     B(Option<Box<u32>>), //     B(Option<&'enum_ptr u32>),
+    /// }                        // }
+    ///
+    /// let foo: Compact<_> = Foo::A(Box::new(1)).into();
+    /// match foo.borrow() {
+    ///     FooRef::A(inner) => assert_eq!(inner, &1),
+    ///     _ => unreachable!(),
+    /// }
+    /// # }
+    /// ```
     #[inline]
     pub fn borrow(&self) -> <T as CompactBorrow>::Target<'_> {
         CompactBorrow::borrow(self)
@@ -150,6 +175,31 @@ where
     T: From<Compact<T>> + CompactBorrowMut,
     Compact<T>: From<T>,
 {
+    /// Returns a reference type that acts like `&mut T`.
+    ///
+    /// Check [`EnumPtr`](crate::EnumPtr) for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "alloc")] {
+    /// use enum_ptr::{Compact, EnumPtr};
+    ///
+    /// #[derive(EnumPtr, Debug)]
+    /// #[enum_ptr(borrow_mut)] // required
+    /// #[repr(C, usize)]
+    /// enum Foo {               // enum FooRefMut<'enum_ptr> {
+    ///     A(Box<i32>),         //     A(&'enum_ptr mut i32),
+    ///     B(Option<Box<u32>>), //     B(Option<&'enum_ptr mut u32>),
+    /// }                        // }
+    ///
+    /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
+    /// match foo.borrow_mut() {
+    ///     FooRefMut::A(inner) => assert_eq!(inner, &mut 1),
+    ///     _ => unreachable!(),
+    /// }
+    /// # }
+    /// ```
     #[inline]
     pub fn borrow_mut(&mut self) -> <T as CompactBorrowMut>::Target<'_> {
         CompactBorrowMut::borrow_mut(self)

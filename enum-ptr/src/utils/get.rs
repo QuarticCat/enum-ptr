@@ -30,6 +30,8 @@ where
 
 /// Borrows a variant from [`Compact`].
 ///
+/// It requires the type of that variant implements [`FieldDeref`].
+///
 /// # Examples
 ///
 /// ```
@@ -44,15 +46,15 @@ where
 /// }
 ///
 /// let foo: Compact<_> = Foo::A(Box::new(1)).into();
-/// assert_eq!(get_ref!(&foo, Foo::A), Some(&1));
-/// assert_eq!(get_ref!(&foo, Foo::B), None);
+/// assert_eq!(get_ref!(foo, Foo::A), Some(&1));
+/// assert_eq!(get_ref!(foo, Foo::B), None);
 /// # }
 /// ```
 #[macro_export]
 macro_rules! get_ref {
     ($compact:expr, $variant:path) => {
         unsafe {
-            $crate::get_ref_helper($compact, |tmp| match tmp {
+            $crate::get_ref_helper(&$compact, |tmp| match tmp {
                 $variant(inner) => Some(inner),
                 _ => None,
             })
@@ -61,6 +63,8 @@ macro_rules! get_ref {
 }
 
 /// Mutably borrows a variant from [`Compact`].
+///
+/// It requires the type of that variant implements [`FieldDerefMut`].
 ///
 /// # Examples
 ///
@@ -76,15 +80,15 @@ macro_rules! get_ref {
 /// }
 ///
 /// let mut foo: Compact<_> = Foo::A(Box::new(1)).into();
-/// assert_eq!(get_mut!(&mut foo, Foo::A), Some(&mut 1));
-/// assert_eq!(get_mut!(&mut foo, Foo::B), None);
+/// assert_eq!(get_mut!(foo, Foo::A), Some(&mut 1));
+/// assert_eq!(get_mut!(foo, Foo::B), None);
 /// # }
 /// ```
 #[macro_export]
 macro_rules! get_mut {
     ($compact:expr, $variant:path) => {
         unsafe {
-            $crate::get_mut_helper($compact, |tmp| match tmp {
+            $crate::get_mut_helper(&mut $compact, |tmp| match tmp {
                 $variant(inner) => Some(inner),
                 _ => None,
             })

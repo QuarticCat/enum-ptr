@@ -3,7 +3,8 @@ use core::ops::Deref;
 
 use crate::Compact;
 
-/// Types that can be borrowed from [`Compact`].
+/// Types that can be borrowed from [`Compact`]. Typically derived from
+/// [`EnumPtr`](crate::EnumPtr).
 pub trait CompactBorrow
 where
     Self: From<Compact<Self>>,
@@ -16,7 +17,8 @@ where
     fn borrow(compact: &Compact<Self>) -> Self::Target<'_>;
 }
 
-/// Types that can be used to derive [`CompactBorrow`].
+/// Types that can be used by [`get_ref`](crate::get_ref) and to derive
+/// [`CompactBorrow`].
 ///
 /// It's like [`Deref`] but with flexible targets and strict constraints.
 ///

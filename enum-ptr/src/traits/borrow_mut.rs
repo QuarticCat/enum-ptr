@@ -3,7 +3,8 @@ use core::ops::DerefMut;
 
 use crate::Compact;
 
-/// Types that can be mutably borrowed from [`Compact`].
+/// Types that can be mutably borrowed from [`Compact`]. Typically derived from
+/// [`EnumPtr`](crate::EnumPtr).
 pub trait CompactBorrowMut
 where
     Self: From<Compact<Self>>,
@@ -16,7 +17,8 @@ where
     fn borrow_mut(compact: &mut Compact<Self>) -> Self::Target<'_>;
 }
 
-/// Types that can be used to derive [`CompactBorrowMut`].
+/// Types that can be used by [`get_mut`](crate::get_mut) and to derive
+/// [`CompactBorrowMut`].
 ///
 /// It's like [`DerefMut`] but with flexible targets and strict constraints.
 ///
