@@ -1,6 +1,6 @@
 use core::mem::align_of;
 
-/// Types (may not be pointers) that can be used in `EnumPtr`.
+/// Types (may not be pointers) that can be used in [`EnumPtr`](crate::EnumPtr).
 ///
 /// # Safety
 ///

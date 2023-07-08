@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-/// `Copy` version of [`Compact`](crate::Compact).
+/// [`Copy`] version of [`Compact`](crate::Compact).
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct CompactCopy<T>
