@@ -39,6 +39,7 @@
 //!   - Unit variants are not allowed due to performance concerns.
 //!   - If you need a unit variant, use [`Unit`].
 //! - **Each variant of `Foo` must have enough alignment to store the tag.**
+//!   - Currently this crate cannot utilize high bits.
 //!
 //! Any violation of these rules will either trigger a compilation error or
 //! a run-time panic. Passed assertions will be optimized out. That is to say,
@@ -56,20 +57,16 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-mod aligned;
-mod borrow;
-mod borrow_mut;
 mod compact;
 mod compact_copy;
 mod convert;
+mod traits;
 mod utils;
 
-pub use aligned::*;
-pub use borrow::*;
-pub use borrow_mut::*;
 pub use compact::*;
 pub use compact_copy::*;
 pub use convert::*;
+pub use traits::*;
 pub use utils::*;
 
 /// Derives conversions to and from [`Compact`].
