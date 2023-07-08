@@ -89,7 +89,7 @@ fn simplest() {
 
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
-                compact.map_ref(|f| match f {
+                compact.map_ref(|tmp| match tmp {
                     Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
                     Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
@@ -99,13 +99,13 @@ fn simplest() {
 
     /* ----- derived code end ----- */
 
-    let compact_foo: Compact<_> = Foo::A(Box::new(0)).into();
+    let compact_foo: Compact<_> = Foo::A(Box::new(1)).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
         FooRef::A(inner) => *inner,
         _ => unreachable!(),
     };
-    assert_eq!(value, 0);
+    assert_eq!(value, 1);
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn with_option() {
 
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
-                compact.map_ref(|f| match f {
+                compact.map_ref(|tmp| match tmp {
                     Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
                     Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
@@ -142,13 +142,13 @@ fn with_option() {
 
     /* ----- derived code end ----- */
 
-    let compact_foo: Compact<_> = Foo::A(Some(Box::new(0))).into();
+    let compact_foo: Compact<_> = Foo::A(Some(Box::new(1))).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
         FooRef::A(Some(inner)) => *inner,
         _ => unreachable!(),
     };
-    assert_eq!(value, 0);
+    assert_eq!(value, 1);
 }
 
 #[test]
@@ -178,7 +178,7 @@ fn with_lifetime() {
 
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
-                compact.map_ref(|f| match f {
+                compact.map_ref(|tmp| match tmp {
                     Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
                     Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
@@ -188,14 +188,14 @@ fn with_lifetime() {
 
     /* ----- derived code end ----- */
 
-    let num = 0;
+    let num = 1;
     let compact_foo: Compact<_> = Foo::A(&num).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
         FooRef::A(inner) => *inner,
         _ => unreachable!(),
     };
-    assert_eq!(value, 0);
+    assert_eq!(value, 1);
 }
 
 #[test]
@@ -225,7 +225,7 @@ fn with_generic_type() {
 
         fn borrow(compact: &Compact<Self>) -> Self::Target<'_> {
             unsafe {
-                compact.map_ref(|f| match f {
+                compact.map_ref(|tmp| match tmp {
                     Self::A(inner) => Self::Target::A(FieldDeref::force_deref(inner)),
                     Self::B(inner) => Self::Target::B(FieldDeref::force_deref(inner)),
                 })
@@ -235,12 +235,12 @@ fn with_generic_type() {
 
     /* ----- derived code end ----- */
 
-    let num = 0;
+    let num = 1;
     let compact_foo: Compact<_> = Foo::<i32, &u32>::A(&num).into();
     let foo_ref = CompactBorrow::borrow(&compact_foo);
     let value = match foo_ref {
         FooRef::A(inner) => *inner,
         _ => unreachable!(),
     };
-    assert_eq!(value, 0);
+    assert_eq!(value, 1);
 }
