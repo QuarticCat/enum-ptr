@@ -5,6 +5,7 @@ use crate::Aligned;
 pub struct Unit(usize);
 
 impl Unit {
+    #[inline]
     pub fn new() -> Self {
         Self(0)
     }

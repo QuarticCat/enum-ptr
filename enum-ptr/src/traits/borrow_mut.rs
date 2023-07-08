@@ -33,6 +33,7 @@ pub unsafe trait FieldDerefMut {
     fn deref_mut(&mut self) -> Self::Target<'_>;
 
     #[doc(hidden)]
+    #[inline]
     unsafe fn force_deref_mut<'a>(&mut self) -> Self::Target<'a> {
         transmute(self.deref_mut())
     }
@@ -43,6 +44,7 @@ unsafe impl<T> FieldDerefMut for &mut T {
     where
         Self: 'a;
 
+    #[inline]
     fn deref_mut(&mut self) -> Self::Target<'_> {
         DerefMut::deref_mut(self)
     }
@@ -53,6 +55,7 @@ unsafe impl<T> FieldDerefMut for Option<&mut T> {
     where
         Self: 'a;
 
+    #[inline]
     fn deref_mut(&mut self) -> Self::Target<'_> {
         self.as_deref_mut()
     }
@@ -69,6 +72,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref_mut(&mut self) -> Self::Target<'_> {
             DerefMut::deref_mut(self)
         }
@@ -79,6 +83,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref_mut(&mut self) -> Self::Target<'_> {
             self.as_deref_mut()
         }

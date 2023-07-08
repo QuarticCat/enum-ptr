@@ -128,6 +128,7 @@ pub fn gen_borrow(input: &Input, conf: &BorrowConf) -> TokenStream {
             where
                 Self: 'enum_ptr;
 
+            #[inline]
             fn borrow(compact: &::enum_ptr::Compact<Self>) -> Self::Target<'_> {
                 unsafe {
                     compact.map_ref(|tmp| match tmp {
@@ -197,6 +198,7 @@ pub fn gen_borrow_mut(input: &Input, conf: &BorrowConf) -> TokenStream {
             where
                 Self: 'enum_ptr;
 
+            #[inline]
             fn borrow_mut(compact: &mut ::enum_ptr::Compact<Self>) -> Self::Target<'_> {
                 unsafe {
                     compact.map_mut(|tmp| match tmp {

@@ -33,6 +33,7 @@ pub unsafe trait FieldDeref {
     fn deref(&self) -> Self::Target<'_>;
 
     #[doc(hidden)]
+    #[inline]
     unsafe fn force_deref<'a>(&self) -> Self::Target<'a> {
         transmute(self.deref())
     }
@@ -43,6 +44,7 @@ unsafe impl<T> FieldDeref for &T {
     where
         Self: 'a;
 
+    #[inline]
     fn deref(&self) -> Self::Target<'_> {
         Deref::deref(self)
     }
@@ -53,6 +55,7 @@ unsafe impl<T> FieldDeref for &mut T {
     where
         Self: 'a;
 
+    #[inline]
     fn deref(&self) -> Self::Target<'_> {
         Deref::deref(self)
     }
@@ -63,6 +66,7 @@ unsafe impl<T> FieldDeref for Option<&T> {
     where
         Self: 'a;
 
+    #[inline]
     fn deref(&self) -> Self::Target<'_> {
         self.as_deref()
     }
@@ -73,6 +77,7 @@ unsafe impl<T> FieldDeref for Option<&mut T> {
     where
         Self: 'a;
 
+    #[inline]
     fn deref(&self) -> Self::Target<'_> {
         self.as_deref()
     }
@@ -91,6 +96,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref(&self) -> Self::Target<'_> {
             Deref::deref(self)
         }
@@ -101,6 +107,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref(&self) -> Self::Target<'_> {
             Deref::deref(self)
         }
@@ -111,6 +118,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref(&self) -> Self::Target<'_> {
             Deref::deref(self)
         }
@@ -121,6 +129,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref(&self) -> Self::Target<'_> {
             self.as_deref()
         }
@@ -131,6 +140,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref(&self) -> Self::Target<'_> {
             self.as_deref()
         }
@@ -141,6 +151,7 @@ mod alloc_impl {
         where
             Self: 'a;
 
+        #[inline]
         fn deref(&self) -> Self::Target<'_> {
             self.as_deref()
         }

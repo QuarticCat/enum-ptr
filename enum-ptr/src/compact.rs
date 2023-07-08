@@ -139,6 +139,7 @@ where
     T: From<Compact<T>> + CompactBorrow,
     Compact<T>: From<T>,
 {
+    #[inline]
     pub fn borrow(&self) -> <T as CompactBorrow>::Target<'_> {
         CompactBorrow::borrow(self)
     }
@@ -149,6 +150,7 @@ where
     T: From<Compact<T>> + CompactBorrowMut,
     Compact<T>: From<T>,
 {
+    #[inline]
     pub fn borrow_mut(&mut self) -> <T as CompactBorrowMut>::Target<'_> {
         CompactBorrowMut::borrow_mut(self)
     }

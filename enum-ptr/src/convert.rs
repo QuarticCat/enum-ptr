@@ -9,6 +9,7 @@ where
     T: From<CompactCopy<T>> + Copy,
     CompactCopy<T>: From<T>,
 {
+    #[inline]
     fn from(value: Compact<T>) -> Self {
         unsafe { transmute(value) }
     }
@@ -21,6 +22,7 @@ where
     T: From<CompactCopy<T>> + Copy,
     CompactCopy<T>: From<T>,
 {
+    #[inline]
     fn from(value: CompactCopy<T>) -> Self {
         unsafe { transmute(value) }
     }

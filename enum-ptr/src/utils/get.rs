@@ -1,6 +1,7 @@
 use crate::{Compact, FieldDeref, FieldDerefMut};
 
 #[doc(hidden)]
+#[inline]
 pub unsafe fn get_ref_helper<T, U>(
     compact: &Compact<T>,
     f: impl FnOnce(&T) -> Option<&U>,
@@ -14,6 +15,7 @@ where
 }
 
 #[doc(hidden)]
+#[inline]
 pub unsafe fn get_mut_helper<T, U>(
     compact: &mut Compact<T>,
     f: impl FnOnce(&mut T) -> Option<&mut U>,
@@ -26,7 +28,7 @@ where
     compact.map_mut(|tmp| f(tmp).map(|tmp| tmp.force_deref_mut()))
 }
 
-/// Gets a reference of a variant from [`Compact`].
+/// Borrows a variant from [`Compact`].
 ///
 /// # Examples
 ///
@@ -57,7 +59,7 @@ macro_rules! get_ref {
     };
 }
 
-/// Gets a mutable reference of a variant from [`Compact`].
+/// Mutably borrows a variant from [`Compact`].
 ///
 /// # Examples
 ///

@@ -6,16 +6,19 @@ pub struct ShiftIsize<const N: isize>(isize);
 
 impl<const N: isize> ShiftIsize<N> {
     /// Creates a new value from an unshifted number.
+    #[inline]
     pub fn new(val: isize) -> Self {
         Self(val << N)
     }
 
     /// Returns the unshifted number.
+    #[inline]
     pub fn get(&self) -> isize {
         self.0 >> N
     }
 
     /// Sets the value by an unshifted number.
+    #[inline]
     pub fn set(&mut self, val: isize) {
         self.0 = val << N;
     }
@@ -31,16 +34,19 @@ pub struct ShiftUsize<const N: usize>(usize);
 
 impl<const N: usize> ShiftUsize<N> {
     /// Creates a new value from a unshifted number.
+    #[inline]
     pub fn new(val: usize) -> Self {
         Self(val << N)
     }
 
     /// Returns the unshifted number.
+    #[inline]
     pub fn get(&self) -> usize {
         self.0 >> N
     }
 
     /// Sets the value by an unshifted number.
+    #[inline]
     pub fn set(&mut self, val: usize) {
         self.0 = val << N;
     }
