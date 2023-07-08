@@ -15,4 +15,4 @@ default = ["alloc"]
 alloc = []
 
 [dependencies]
-enum-ptr-derive = { version = "0.1.8", path = "../enum-ptr-derive" }
+enum-ptr-derive = { version = "0.2.0-beta.0", path = "../enum-ptr-derive" }
