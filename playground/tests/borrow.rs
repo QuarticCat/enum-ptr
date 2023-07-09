@@ -8,7 +8,7 @@ use enum_ptr::*;
 
 /* ----- lib code ----- */
 
-trait CompactBorrow
+pub trait CompactBorrow
 where
     Self: From<Compact<Self>>,
     Compact<Self>: From<Self>,
@@ -21,7 +21,7 @@ where
 }
 
 #[doc(hidden)]
-unsafe trait FieldDeref {
+pub unsafe trait FieldDeref {
     type Target<'a>
     where
         Self: 'a;
@@ -77,7 +77,10 @@ fn simplest() {
     /* ----- derived code begin ----- */
 
     #[repr(C, usize)]
-    enum FooRef<'enum_ptr> {
+    enum FooRef<'enum_ptr>
+    where
+        Foo: 'enum_ptr,
+    {
         A(<Box<i32> as FieldDeref>::Target<'enum_ptr>),
         B(<Box<u32> as FieldDeref>::Target<'enum_ptr>),
     }
@@ -120,7 +123,10 @@ fn with_option() {
     /* ----- derived code begin ----- */
 
     #[repr(C, usize)]
-    enum FooRef<'enum_ptr> {
+    enum FooRef<'enum_ptr>
+    where
+        Foo: 'enum_ptr,
+    {
         A(<Option<Box<i32>> as FieldDeref>::Target<'enum_ptr>),
         B(<Option<Box<u32>> as FieldDeref>::Target<'enum_ptr>),
     }
