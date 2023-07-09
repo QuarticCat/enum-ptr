@@ -10,6 +10,10 @@ pub fn gen_basic(input: &Input) -> TokenStream {
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let original_type = quote!(#input_ident #ty_generics);
     let compact_type = quote!(::enum_ptr::Compact<#original_type>);
+    let inner_type = match input.copy.is_present() {
+        true => quote!(::enum_ptr::CompactInnerCopy<#original_type>),
+        false => quote!(::enum_ptr::CompactInner<#original_type>),
+    };
 
     let ast::Data::Enum(variants) = &input.data else { unreachable!() };
     let min_align = variants.len().next_power_of_two();
@@ -29,42 +33,26 @@ pub fn gen_basic(input: &Input) -> TokenStream {
     }
 
     quote! {
-        impl #impl_generics From<#original_type> for #compact_type #where_clause {
-            #[inline]
-            fn from(value: #original_type) -> Self {
+        unsafe impl #impl_generics ::enum_ptr::Compactable for #original_type #where_clause {
+            type Inner = #inner_type;
+
+            const MASK: usize = {
                 #(#asserts)*
-                unsafe { ::core::mem::transmute(::enum_ptr::compact(value)) }
-            }
+                #tag_mask
+            };
         }
 
-        impl #impl_generics From<#compact_type> for #original_type #where_clause {
-            #[inline]
-            fn from(value: #compact_type) -> Self {
-                unsafe { ::enum_ptr::extract(::core::mem::transmute(value), #tag_mask) }
-            }
-        }
-    }
-    .into()
-}
-
-pub fn gen_copy(input: &Input) -> TokenStream {
-    let input_ident = &input.ident;
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-    let original_type = quote!(#input_ident #ty_generics);
-    let compact_type = quote!(::enum_ptr::CompactCopy<#original_type>);
-
-    quote! {
         impl #impl_generics From<#original_type> for #compact_type #where_clause {
             #[inline]
             fn from(value: #original_type) -> Self {
-                ::enum_ptr::Compact::from(value).into()
+                <#original_type as ::enum_ptr::Compactable>::compact(value)
             }
         }
 
         impl #impl_generics From<#compact_type> for #original_type #where_clause {
             #[inline]
             fn from(value: #compact_type) -> Self {
-                ::enum_ptr::Compact::from(value).into()
+                <#original_type as ::enum_ptr::Compactable>::extract(value)
             }
         }
     }

@@ -1,15 +1,11 @@
 use core::mem::transmute;
 use core::ops::Deref;
 
-use crate::Compact;
+use crate::{Compact, Compactable};
 
 /// Types that can be borrowed from [`Compact`]. Typically derived from
 /// [`EnumPtr`](crate::EnumPtr).
-pub trait CompactBorrow
-where
-    Self: From<Compact<Self>>,
-    Compact<Self>: From<Self>,
-{
+pub trait CompactBorrow: Compactable {
     type Target<'a>
     where
         Self: 'a;

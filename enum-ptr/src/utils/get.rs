@@ -1,4 +1,4 @@
-use crate::{Compact, FieldDeref, FieldDerefMut};
+use crate::{Compact, Compactable, FieldDeref, FieldDerefMut};
 
 #[doc(hidden)]
 #[inline]
@@ -7,8 +7,7 @@ pub unsafe fn get_ref_helper<T, U>(
     f: impl FnOnce(&T) -> Option<&U>,
 ) -> Option<<U as FieldDeref>::Target<'_>>
 where
-    T: From<Compact<T>>,
-    Compact<T>: From<T>,
+    T: Compactable,
     U: FieldDeref,
 {
     compact.map_ref(|tmp| f(tmp).map(|tmp| tmp.force_deref()))
@@ -21,8 +20,7 @@ pub unsafe fn get_mut_helper<T, U>(
     f: impl FnOnce(&mut T) -> Option<&mut U>,
 ) -> Option<<U as FieldDerefMut>::Target<'_>>
 where
-    T: From<Compact<T>>,
-    Compact<T>: From<T>,
+    T: Compactable,
     U: FieldDerefMut,
 {
     compact.map_mut(|tmp| f(tmp).map(|tmp| tmp.force_deref_mut()))

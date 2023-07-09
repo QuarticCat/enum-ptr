@@ -24,9 +24,6 @@ fn enum_ptr_inner(input: &syn::DeriveInput) -> Result<TokenStream, Error> {
     validate_input(&input)?;
 
     let mut output = gen_basic(&input);
-    if input.copy.is_present() {
-        output.extend(gen_copy(&input));
-    }
     if let Some(conf) = input.borrow.clone() {
         output.extend(gen_borrow(&input, &conf.unwrap_or_default()));
     }

@@ -1,15 +1,11 @@
 use core::mem::transmute;
 use core::ops::DerefMut;
 
-use crate::Compact;
+use crate::{Compact, Compactable};
 
 /// Types that can be mutably borrowed from [`Compact`]. Typically derived from
 /// [`EnumPtr`](crate::EnumPtr).
-pub trait CompactBorrowMut
-where
-    Self: From<Compact<Self>>,
-    Compact<Self>: From<Self>,
-{
+pub trait CompactBorrowMut: Compactable {
     type Target<'a>
     where
         Self: 'a;

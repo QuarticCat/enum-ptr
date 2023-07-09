@@ -1,36 +1,31 @@
-use core::marker::PhantomData;
-use core::mem::ManuallyDrop;
+use core::mem::{transmute_copy, ManuallyDrop};
 
-use crate::{CompactBorrow, CompactBorrowMut};
+use crate::{CompactBorrow, CompactBorrowMut, CompactInnerCopy, Compactable};
 
 /// Compact representation of `T`. Only one-pointer wide.
 ///
 /// It behaves like `T` for `Drop`, `Clone`, `Hash`, `Eq`, `Ord`, ...
 #[repr(transparent)]
-pub struct Compact<T>
-where
-    T: From<Compact<T>>,
-    Compact<T>: From<T>,
-{
-    data: *const u8,
-    marker: PhantomData<T>,
+pub struct Compact<T: Compactable> {
+    pub(crate) inner: T::Inner,
 }
 
-impl<T> Compact<T>
-where
-    T: From<Compact<T>>,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable> Compact<T> {
     /// Returns the underlying raw data.
     #[inline]
     pub fn as_raw_data(&self) -> *const u8 {
-        self.data
+        unsafe { transmute_copy(self) }
     }
 
-    /// Alias of `T::from(self)`.
+    /// Returns the original value.
     #[inline]
     pub fn extract(self) -> T {
-        self.into()
+        T::extract(self)
+    }
+
+    #[inline]
+    unsafe fn temp_extract(&self) -> ManuallyDrop<T> {
+        ManuallyDrop::new(T::extract(transmute_copy(self)))
     }
 
     /// Maps a `&T` to `U` by applying a function to a temporarily created
@@ -62,7 +57,7 @@ where
     /// ```
     #[inline]
     pub fn map_ref<U>(&self, f: impl FnOnce(&T) -> U) -> U {
-        f(&ManuallyDrop::new(T::from(Self { ..*self })))
+        unsafe { f(&self.temp_extract()) }
     }
 
     /// Maps a `&mut T` to `U` by applying a function to a temporarily created
@@ -100,7 +95,7 @@ where
     /// ```
     #[inline]
     pub unsafe fn map_mut<U>(&mut self, f: impl FnOnce(&mut T) -> U) -> U {
-        f(&mut ManuallyDrop::new(T::from(Self { ..*self })))
+        f(&mut self.temp_extract())
     }
 
     // /// Replaces the wrapped value with a new one computed from f, returning
@@ -134,11 +129,7 @@ where
     // }
 }
 
-impl<T> Compact<T>
-where
-    T: From<Compact<T>> + CompactBorrow,
-    Compact<T>: From<T>,
-{
+impl<T: CompactBorrow> Compact<T> {
     /// Returns a reference type that acts like `&T`.
     ///
     /// Check [`EnumPtr`](crate::EnumPtr) for more details.
@@ -166,15 +157,11 @@ where
     /// ```
     #[inline]
     pub fn borrow(&self) -> <T as CompactBorrow>::Target<'_> {
-        CompactBorrow::borrow(self)
+        T::borrow(self)
     }
 }
 
-impl<T> Compact<T>
-where
-    T: From<Compact<T>> + CompactBorrowMut,
-    Compact<T>: From<T>,
-{
+impl<T: CompactBorrowMut> Compact<T> {
     /// Returns a reference type that acts like `&mut T`.
     ///
     /// Check [`EnumPtr`](crate::EnumPtr) for more details.
@@ -202,114 +189,66 @@ where
     /// ```
     #[inline]
     pub fn borrow_mut(&mut self) -> <T as CompactBorrowMut>::Target<'_> {
-        CompactBorrowMut::borrow_mut(self)
+        T::borrow_mut(self)
     }
 }
 
-impl<T> Drop for Compact<T>
+impl<T: Compactable> Clone for Compact<T>
 where
-    T: From<Compact<T>>,
-    Compact<T>: From<T>,
-{
-    #[inline]
-    fn drop(&mut self) {
-        drop(T::from(Self { ..*self }));
-    }
-}
-
-impl<T> Clone for Compact<T>
-where
-    T: From<Compact<T>> + Clone,
-    Compact<T>: From<T>,
+    T::Inner: Clone,
 {
     #[inline]
     fn clone(&self) -> Self {
-        self.map_ref(|this| this.clone().into())
+        let inner = self.inner.clone();
+        Self { inner }
     }
 }
 
-impl<T> PartialEq for Compact<T>
-where
-    T: From<Compact<T>> + PartialEq,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable<Inner = CompactInnerCopy<T>> + Copy> Copy for Compact<T> {}
+
+impl<T: Compactable + PartialEq> PartialEq for Compact<T> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.map_ref(|this| other.map_ref(|that| this.eq(that)))
     }
 }
 
-impl<T> Eq for Compact<T>
-where
-    T: From<Compact<T>> + Eq,
-    Compact<T>: From<T>,
-{
-}
+impl<T: Compactable + Eq> Eq for Compact<T> {}
 
-impl<T> PartialOrd for Compact<T>
-where
-    T: From<Compact<T>> + PartialOrd,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable + PartialOrd> PartialOrd for Compact<T> {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         self.map_ref(|this| other.map_ref(|that| this.partial_cmp(that)))
     }
 }
 
-impl<T> Ord for Compact<T>
-where
-    T: From<Compact<T>> + Ord,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable + Ord> Ord for Compact<T> {
     #[inline]
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         self.map_ref(|this| other.map_ref(|that| this.cmp(that)))
     }
 }
 
-impl<T> core::fmt::Debug for Compact<T>
-where
-    T: From<Compact<T>> + core::fmt::Debug,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable + core::fmt::Debug> core::fmt::Debug for Compact<T> {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self.map_ref(|this| this.fmt(f))
     }
 }
 
-impl<T> Default for Compact<T>
-where
-    T: From<Compact<T>> + Default,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable + Default> Default for Compact<T> {
     fn default() -> Self {
-        T::default().into()
+        T::default().compact()
     }
 }
 
-impl<T> core::hash::Hash for Compact<T>
-where
-    T: From<Compact<T>> + core::hash::Hash,
-    Compact<T>: From<T>,
-{
+impl<T: Compactable + core::hash::Hash> core::hash::Hash for Compact<T> {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.map_ref(|this| this.hash(state))
     }
 }
 
-unsafe impl<T> Send for Compact<T>
-where
-    T: From<Compact<T>> + Send,
-    Compact<T>: From<T>,
-{
-}
+unsafe impl<T: Compactable + Send> Send for Compact<T> {}
 
-unsafe impl<T> Sync for Compact<T>
-where
-    T: From<Compact<T>> + Sync,
-    Compact<T>: From<T>,
-{
-}
+unsafe impl<T: Compactable + Sync> Sync for Compact<T> {}

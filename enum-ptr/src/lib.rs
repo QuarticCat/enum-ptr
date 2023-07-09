@@ -38,20 +38,19 @@
 //!
 //! This crate provides multiple flavors of APIs.
 //!
-//! ## Flavor 1: `CompactCopy`
+//! ## Flavor 1: copy everywhere
 //!
 //! If your enum type is [`Copy`] (e.g., consists of only `&T`s), you can
-//! convert it to [`CompactCopy`]. Each time you need to use it, just copy
-//! and [`extract`](CompactCopy::extract) it. Easy-peasy!
+//! mark it with `#[enum_ptr(copy)]`. Each time you need to use it, just copy
+//! and [`extract`](Compact::extract) it. Easy-peasy!
 //!
-//! Sadly, due to language limitations, we cannot combine [`Compact`] and
-//! [`CompactCopy`] into one type.
+//! Due to language limitations, we cannot automatically infer `copy`.
 //!
 //! <details>
 //! <summary>Click to show examples</summary>
 //!
 //! ```
-//! use enum_ptr::{CompactCopy, EnumPtr};
+//! use enum_ptr::{Compact, EnumPtr};
 //!
 //! #[derive(EnumPtr, Debug, Clone, Copy, PartialEq, Eq)]
 //! #[enum_ptr(copy)] // required
@@ -61,7 +60,7 @@
 //!     B(&'b u32),
 //! }
 //!
-//! let foo: CompactCopy<_> = Foo::A(&1).into();
+//! let foo: Compact<_> = Foo::A(&1).into();
 //! assert_eq!(foo.extract(), Foo::A(&1));
 //! assert_ne!(foo.extract(), Foo::B(&2));
 //! ```
@@ -75,8 +74,8 @@
 //!
 //! For example, if you hold a compact `Box<T>`, you can use these APIs to
 //! access `&T` and `&mut T`. Since there's no `Box<T>` in the memory (but only
-//! its compact form), we cannot create `&Box<T>` and `&mut Box<T>`. The
-//! target types are specified by [`FieldDeref`] and [`FieldDerefMut`].
+//! its compact form), we cannot create `&Box<T>` and `&mut Box<T>`. The target
+//! types are specified by [`FieldDeref`] and [`FieldDerefMut`].
 //!
 //! <details>
 //! <summary>Click to show examples</summary>
@@ -187,7 +186,8 @@
 //!
 //! ## Extension
 //!
-//! All important traits are public. You can implement them for your own types.
+//! Most of the important traits are public. You can implement them for your
+//! own types.
 //!
 //! - To make your types available in [`EnumPtr`], implement [`Aligned`].
 //! - To make your types available in [`get_ref`] / [`get_mut`] and
@@ -210,9 +210,7 @@
 //! - **Each variant of `Foo` must have enough alignment to store the tag.**
 //!   - Currently this crate cannot utilize high bits.
 //!
-//! Any violation of these rules will either trigger a compilation error or
-//! a run-time panic. Passed assertions will be optimized out. That is to say,
-//! rule checks won't affect the run-time performance.
+//! Any violation of these rules will trigger a **compilation error**.
 //!
 //! [RFC]: https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md
 //! [Rust Reference]: https://doc.rust-lang.org/reference/items/enumerations.html#custom-discriminant-values-for-fieldless-enumerations
@@ -226,15 +224,11 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-mod compact;
-mod compact_copy;
-mod convert;
+mod base;
 mod traits;
 mod utils;
 
-pub use compact::*;
-pub use compact_copy::*;
-pub use convert::*;
+pub use base::*;
 pub use traits::*;
 pub use utils::*;
 
