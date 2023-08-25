@@ -1,9 +1,9 @@
 //! This crate provides a custom derive macro [`EnumPtr`] to generate bridges
-//! between an enum `T` and [`Compact<T>`] with minimum cost.
+//! between an enum `T` and [`Compact<T>`] with minimum cost. [`Compact<T>`] is
+//! the compact representation of `T`, and it is only one pointer wide.
 //!
-//! [`Compact<T>`] is the compact representation of `T`, and it is only one
-//! pointer wide. This is viable because some types' low bits are always zeros.
-//! [`Compact<T>`] utilizes these bits to store the tag (discriminant value).
+//! This is viable because some types' low bits are always zeros.
+//! [`Compact<T>`] utilizes these bits to store the tag (discriminant).
 //!
 //! # Examples
 //!

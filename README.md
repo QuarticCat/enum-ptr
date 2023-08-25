@@ -32,7 +32,7 @@ impl<'a> From<Compact<Foo<'a>>> for Foo<'a> {
 }
 ```
 
-Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them are always zeros. `Compact<Foo<'a>>` utilizes these bits to store the tag (discriminant value).
+Since `&i32` and `Box<i32>` are aligned by 4 bytes, the lowest 2 bits of them are always zeros. `Compact<Foo<'a>>` utilizes these bits to store the tag (discriminant).
 
 ## Features
 
