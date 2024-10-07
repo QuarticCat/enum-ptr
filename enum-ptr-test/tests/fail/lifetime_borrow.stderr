@@ -4,7 +4,7 @@ error[E0505]: cannot move out of `foo` because it is borrowed
 14 |     let foo: Compact<_> = Foo::A(None).into();
    |         --- binding `foo` declared here
 15 |     let foo_ref = foo.borrow();
-   |                   ------------ borrow of `foo` occurs here
+   |                   --- borrow of `foo` occurs here
 16 |     drop(foo);
    |          ^^^ move out of `foo` occurs here
 17 |     drop(foo_ref);
@@ -16,7 +16,7 @@ error[E0505]: cannot move out of `foo` because it is borrowed
 21 |     let mut foo: Compact<_> = Foo::A(None).into();
    |         ------- binding `foo` declared here
 22 |     let foo_mut = foo.borrow_mut();
-   |                   ---------------- borrow of `foo` occurs here
+   |                   --- borrow of `foo` occurs here
 23 |     drop(foo);
    |          ^^^ move out of `foo` occurs here
 24 |     drop(foo_mut);
