@@ -4,6 +4,7 @@ name = "enum-ptr"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
+keywords.workspace = true
 readme.workspace = true
 repository.workspace = true
 documentation.workspace = true

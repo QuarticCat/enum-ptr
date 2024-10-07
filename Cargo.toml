@@ -6,6 +6,7 @@ resolver = "2"
 version = "0.2.0-beta.0"
 authors = ["QuarticCat <QuarticCat@pm.me>"]
 description = "Ergonomic tagged pointer"
+keywords = ["enum", "pointer", "tag", "tagged", "tagging"]
 readme = "README.md"
 repository = "https://github.com/QuarticCat/enum-ptr"
 documentation = "https://docs.rs/enum-ptr/"
