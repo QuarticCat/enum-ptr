@@ -147,9 +147,11 @@
 //!
 //! ## Flavor 4: `map_ref` & `map_mut` *(legacy)*
 //!
-//! [`map_ref`](Compact::map_ref) and [`map_mut`](Compact::map_mut) will create
-//! temporary objects that drop as soon as your closure ends. They are
-//! important for internal implementations, but less useful for lib users.
+//! [`map_ref`](Compact::map_ref) and [`map_mut`](Compact::map_mut) will copy
+//! (= [`core::mem::transmute_copy`]) temporary objects out of its compact ones,
+//! that [`core::mem::forget`]-ed as soon as your closure ends, so that no
+//! destructor is needed to be run.  They are important for internal
+//! implementations, but less useful for lib users.
 //!
 //! <details>
 //! <summary>Click to show examples</summary>
