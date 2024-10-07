@@ -3,7 +3,7 @@ members = ["enum-ptr*", "playground"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.0-beta.0"
+version = "0.2.0"
 authors = ["QuarticCat <QuarticCat@pm.me>"]
 description = "Ergonomic tagged pointer"
 keywords = ["enum", "pointer", "tag", "tagged", "tagging"]
