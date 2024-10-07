@@ -7,6 +7,11 @@ error: lifetime may not live long enough
    |                  has type `&'1 Foo<'_, '_>`
 15 |         Foo::A(r) | Foo::B(r) => r,
    |                                  ^ returning this value requires that `'1` must outlive `'2`
+   |
+help: dereference the return value
+   |
+14 |     foo.map_ref(|f| **match f {
+   |                     ++
 
 error: lifetime may not live long enough
   --> tests/fail/lifetime_map.rs:22:34
@@ -17,3 +22,8 @@ error: lifetime may not live long enough
    |                  has type `&'1 mut Foo<'_, '_>`
 22 |         Foo::A(r) | Foo::B(r) => r,
    |                                  ^ returning this value requires that `'1` must outlive `'2`
+   |
+help: dereference the return value
+   |
+21 |     foo.map_mut(|f| **match f {
+   |                     ++
