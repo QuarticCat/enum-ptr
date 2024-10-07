@@ -14,6 +14,6 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
-syn = { version = "2.0.23", features = ["extra-traits"] }
-quote = "1.0.26"
-darling = "0.20.1"
+syn = { version = "2.0.79", features = ["extra-traits"] }
+quote = "1.0.37"
+darling = "0.20.10"
