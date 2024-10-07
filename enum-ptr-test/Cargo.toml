@@ -19,4 +19,4 @@ alloc = ["enum-ptr/alloc"]
 enum-ptr = { path = "../enum-ptr", default-features = false }
 
 [dev-dependencies]
-trybuild = { version = "1.0.71", features = ["diff"] }
+trybuild = { version = "1.0.99", features = ["diff"] }
